@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "DataPipeline",
+    "displayName": "Get_Data_CDK_SFTP_Bronze_C210449_Daily"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "4ee8beae-1f5d-4741-a063-1ac2108d6bd9"
+  }
+}

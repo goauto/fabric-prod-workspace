@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "DataPipeline",
+    "displayName": "pbs_daily_pl"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "01597344-092c-4be2-a947-4b50bb81cc47"
+  }
+}

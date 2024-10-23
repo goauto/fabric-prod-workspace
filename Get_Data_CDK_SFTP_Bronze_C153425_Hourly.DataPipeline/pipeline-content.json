@@ -1,0 +1,244 @@
+{
+  "properties": {
+    "activities": [
+      {
+        "type": "ForEach",
+        "typeProperties": {
+          "isSequential": true,
+          "items": {
+            "value": "@pipeline().parameters.cdk_files",
+            "type": "Expression"
+          },
+          "activities": [
+            {
+              "type": "Script",
+              "typeProperties": {
+                "database": "Bronze_v2",
+                "scripts": [
+                  {
+                    "text": {
+                      "value": "SELECT TOP (1) dateadd(s, 10, Watermark) AS Watermark  FROM dabe_watermarks1 where DabeSource='@{pipeline().parameters.box}' AND TableName='@{item().source}'",
+                      "type": "Expression"
+                    },
+                    "type": "Query"
+                  }
+                ]
+              },
+              "externalReferences": {
+                "connection": "d39fa9ca-4d17-4cce-bf3f-94cfeb8b4973"
+              },
+              "policy": {
+                "timeout": "0.12:00:00",
+                "retry": 0,
+                "retryIntervalInSeconds": 30,
+                "secureInput": false,
+                "secureOutput": false
+              },
+              "name": "Script to fetch Watermark",
+              "dependsOn": []
+            },
+            {
+              "type": "SetVariable",
+              "typeProperties": {
+                "variableName": "last_known_file_modified_timestamp",
+                "value": {
+                  "value": "@activity('Script to fetch Watermark').output.resultSets[0].rows[0].Watermark\n",
+                  "type": "Expression"
+                }
+              },
+              "policy": {
+                "secureInput": false,
+                "secureOutput": false
+              },
+              "name": "Set Last Modified Time",
+              "dependsOn": [
+                {
+                  "activity": "Script to fetch Watermark",
+                  "dependencyConditions": [
+                    "Succeeded"
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "GetMetadata",
+              "typeProperties": {
+                "datasetSettings": {
+                  "type": "Binary",
+                  "typeProperties": {
+                    "location": {
+                      "type": "SftpLocation",
+                      "folderPath": {
+                        "value": "@concat(pipeline().parameters.box, '/', item().source)",
+                        "type": "Expression"
+                      }
+                    }
+                  },
+                  "externalReferences": {
+                    "connection": "719829c5-f6cc-4c88-aa82-14623ef4c8bd"
+                  },
+                  "annotations": []
+                },
+                "fieldList": [
+                  "childItems"
+                ],
+                "storeSettings": {
+                  "type": "SftpReadSettings",
+                  "disableChunking": false,
+                  "recursive": true,
+                  "enablePartitionDiscovery": false,
+                  "modifiedDatetimeStart": {
+                    "value": "@variables('last_known_file_modified_timestamp')",
+                    "type": "Expression"
+                  }
+                },
+                "formatSettings": {
+                  "type": "BinaryReadSettings"
+                }
+              },
+              "policy": {
+                "timeout": "0.12:00:00",
+                "retry": 0,
+                "retryIntervalInSeconds": 30,
+                "secureInput": false,
+                "secureOutput": false
+              },
+              "name": "Get new gpg file list from SFTP",
+              "dependsOn": [
+                {
+                  "activity": "Set Last Modified Time",
+                  "dependencyConditions": [
+                    "Succeeded"
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "Office365Outlook",
+              "typeProperties": {
+                "inputs": {
+                  "body": {
+                    "To": "mtirupathi@goauto.ca",
+                    "Subject": "CDK Child Pipeline failed",
+                    "Body": "<p>@{pipeline().parameters.box}</p>\n<p>@{variables('csv name')}</p>\n<p>@{activity('Invoke Process File Pipeline').output}</p>",
+                    "Sensitivity": "",
+                    "Importance": "Normal"
+                  },
+                  "method": "post",
+                  "path": "/v2/Mail"
+                }
+              },
+              "name": "CDK Child Pipeline Failure Alert",
+              "dependsOn": [
+                {
+                  "activity": "Invoke Process File Pipeline",
+                  "dependencyConditions": [
+                    "Failed"
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "InvokePipeline",
+              "typeProperties": {
+                "parameters": {
+                  "box": {
+                    "value": "@pipeline().parameters.box",
+                    "type": "Expression"
+                  },
+                  "destinationPath": {
+                    "value": "@formatDateTime(convertTimeZone(utcnow(), 'UTC', 'Mountain Standard Time'), 'yyyy/MM/dd')",
+                    "type": "Expression"
+                  },
+                  "inputFiles": {
+                    "value": "@activity('Get new gpg file list from SFTP').output.childItems",
+                    "type": "Expression"
+                  },
+                  "config": {
+                    "value": "@item()",
+                    "type": "Expression"
+                  }
+                },
+                "waitOnCompletion": true,
+                "workspaceId": "cf6eae1e-540c-45e8-b1bd-ed425d395cfd",
+                "pipelineId": "00c339c2-e8cf-4d27-b63a-8a47738e61b7",
+                "operationType": "InvokeFabricPipeline"
+              },
+              "externalReferences": {
+                "connection": "5f68be70-a048-47f4-90b7-fd8c84695273"
+              },
+              "policy": {
+                "timeout": "0.12:00:00",
+                "retry": 0,
+                "retryIntervalInSeconds": 30,
+                "secureInput": false,
+                "secureOutput": false
+              },
+              "name": "Invoke Process File Pipeline",
+              "dependsOn": [
+                {
+                  "activity": "Get new gpg file list from SFTP",
+                  "dependencyConditions": [
+                    "Succeeded"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "name": "ForEach1",
+        "dependsOn": []
+      }
+    ],
+    "parameters": {
+      "cdk_files": {
+        "type": "array",
+        "defaultValue": [
+          {
+            "source": "GLJEDetail",
+            "destination": "GLJEDetail",
+            "primary_keys": [
+              "hostdb",
+              "hostname",
+              "hostitemid"
+            ]
+          },
+          {
+            "source": "GLAccountLedger",
+            "destination": "GLAccountLedger",
+            "primary_keys": [
+              "hostdb",
+              "hostname",
+              "hostitemid"
+            ]
+          },
+          {
+            "source": "GLStatCount",
+            "destination": "GLStatCount",
+            "primary_keys": [
+              "hostdb",
+              "hostname",
+              "hostitemid"
+            ]
+          }
+        ]
+      },
+      "box": {
+        "type": "string",
+        "defaultValue": "C153425"
+      }
+    },
+    "variables": {
+      "last_known_file_modified_timestamp": {
+        "type": "String"
+      },
+      "csv name": {
+        "type": "String"
+      },
+      "InsertedCount": {
+        "type": "Integer",
+        "defaultValue": 0
+      }
+    }
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "properties": {
+    "activities": [
+      {
+        "type": "TridentNotebook",
+        "typeProperties": {
+          "notebookId": "78e8c286-c58f-466f-8fa6-c1268e60aac1",
+          "workspaceId": "00000000-0000-0000-0000-000000000000"
+        },
+        "policy": {
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "Get data from PBS Apis and load into Bronze",
+        "dependsOn": []
+      },
+      {
+        "type": "Office365Outlook",
+        "typeProperties": {
+          "inputs": {
+            "body": {
+              "To": "rgolden@goauto.ca;mtirupathi@goauto.ca;tvalentindeoliveira@goauto.ca;gmccabe@goauto.ca;powusu@goauto.ca;zvisram@goauto.ca",
+              "Subject": "PBS pipeline failure",
+              "Body": "<p>@{pipeline().DataFactory}@{pipeline().PipelineName}@{pipeline().RunId}@{activity('Get data from PBS Apis and load into Bronze').output}</p>",
+              "Sensitivity": "",
+              "Importance": "Normal"
+            },
+            "method": "post",
+            "path": "/v2/Mail"
+          }
+        },
+        "name": "Pipeline failure",
+        "dependsOn": [
+          {
+            "activity": "Get data from PBS Apis and load into Bronze",
+            "dependencyConditions": [
+              "Failed"
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

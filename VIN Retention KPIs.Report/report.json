@@ -1,0 +1,51 @@
+{
+  "config": "{\"version\":\"5.59\",\"themeCollection\":{\"baseTheme\":{\"name\":\"CY24SU10\",\"version\":\"5.59\",\"type\":2}},\"activeSectionIndex\":0,\"defaultDrillFilterOtherVisuals\":true,\"settings\":{\"useNewFilterPaneExperience\":true,\"allowChangeFilterTypes\":true,\"useStylableVisualContainerHeader\":true,\"queryLimitOption\":6,\"useEnhancedTooltips\":true,\"exportDataMode\":1,\"useDefaultAggregateDisplayName\":true},\"objects\":{\"section\":[{\"properties\":{\"verticalAlignment\":{\"expr\":{\"Literal\":{\"Value\":\"'Top'\"}}}}}]}}",
+  "layoutOptimization": 0,
+  "resourcePackages": [
+    {
+      "resourcePackage": {
+        "disabled": false,
+        "items": [
+          {
+            "name": "CY24SU10",
+            "path": "BaseThemes/CY24SU10.json",
+            "type": 202
+          }
+        ],
+        "name": "SharedResources",
+        "type": 2
+      }
+    }
+  ],
+  "sections": [
+    {
+      "config": "{}",
+      "displayName": "Page 1",
+      "displayOption": 1,
+      "filters": "[]",
+      "height": 720.00,
+      "name": "f935dfeac7c7b2de06e8",
+      "visualContainers": [
+        {
+          "config": "{\"name\":\"5b8c38174cf7d7e830bf\",\"layouts\":[{\"id\":0,\"position\":{\"x\":568.9992242048099,\"y\":87.3855702094647,\"z\":2,\"width\":651.4197051978277,\"height\":296.9123351435221,\"tabOrder\":2}}],\"singleVisual\":{\"visualType\":\"columnChart\",\"projections\":{\"Y\":[{\"queryRef\":\"Sum(appointment_outlook.appointments)\"}],\"Category\":[{\"queryRef\":\"appointment_outlook.appointment_week\",\"active\":true}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"a\",\"Entity\":\"appointment_outlook\",\"Type\":0}],\"Select\":[{\"Aggregation\":{\"Expression\":{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"a\"}},\"Property\":\"appointments\"}},\"Function\":0},\"Name\":\"Sum(appointment_outlook.appointments)\",\"NativeReferenceName\":\"Sum of appointments\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"a\"}},\"Property\":\"appointment_week\"},\"Name\":\"appointment_outlook.appointment_week\",\"NativeReferenceName\":\"appointment_week\"}],\"OrderBy\":[{\"Direction\":1,\"Expression\":{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"a\"}},\"Property\":\"appointment_week\"}}}]},\"drillFilterOtherVisuals\":true,\"hasDefaultSort\":true}}",
+          "filters": "[]",
+          "height": 296.91,
+          "width": 651.42,
+          "x": 569.00,
+          "y": 87.39,
+          "z": 2.00
+        },
+        {
+          "config": "{\"name\":\"c5dd5d3ae1f5ea2a552e\",\"layouts\":[{\"id\":0,\"position\":{\"x\":55.60899922420481,\"y\":142.00155159038013,\"z\":0,\"width\":280.0310318076028,\"height\":280.0310318076028,\"tabOrder\":0}}],\"singleVisual\":{\"visualType\":\"card\",\"projections\":{\"Values\":[{\"queryRef\":\"appointment_outlook.CurrentAppointments\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"a\",\"Entity\":\"appointment_outlook\",\"Type\":0}],\"Select\":[{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"a\"}},\"Property\":\"CurrentAppointments\"},\"Name\":\"appointment_outlook.CurrentAppointments\",\"NativeReferenceName\":\"CurrentAppointments\"}]},\"drillFilterOtherVisuals\":true}}",
+          "filters": "[]",
+          "height": 280.03,
+          "width": 280.03,
+          "x": 55.61,
+          "y": 142.00,
+          "z": 0.00
+        }
+      ],
+      "width": 1280.00
+    }
+  ]
+}

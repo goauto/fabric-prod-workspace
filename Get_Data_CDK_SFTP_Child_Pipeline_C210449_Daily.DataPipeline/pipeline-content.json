@@ -1,0 +1,579 @@
+{
+  "properties": {
+    "activities": [
+      {
+        "type": "ForEach",
+        "typeProperties": {
+          "isSequential": true,
+          "items": {
+            "value": "@pipeline().parameters.inputFiles",
+            "type": "Expression"
+          },
+          "activities": [
+            {
+              "type": "SetVariable",
+              "typeProperties": {
+                "variableName": "csv name",
+                "value": {
+                  "value": "@replace(item().name, '.gpg', '')",
+                  "type": "Expression"
+                }
+              },
+              "policy": {
+                "secureInput": false,
+                "secureOutput": false
+              },
+              "name": "Set csv name",
+              "dependsOn": []
+            },
+            {
+              "type": "Copy",
+              "typeProperties": {
+                "source": {
+                  "type": "BinarySource",
+                  "formatSettings": {
+                    "type": "BinaryReadSettings"
+                  },
+                  "storeSettings": {
+                    "type": "SftpReadSettings",
+                    "disableChunking": false,
+                    "recursive": true
+                  },
+                  "datasetSettings": {
+                    "type": "Binary",
+                    "typeProperties": {
+                      "location": {
+                        "type": "SftpLocation",
+                        "folderPath": {
+                          "value": "@concat(pipeline().parameters.box, '/', pipeline().parameters.config.source)",
+                          "type": "Expression"
+                        },
+                        "fileName": {
+                          "value": "@item().name",
+                          "type": "Expression"
+                        }
+                      }
+                    },
+                    "externalReferences": {
+                      "connection": "719829c5-f6cc-4c88-aa82-14623ef4c8bd"
+                    },
+                    "annotations": []
+                  }
+                },
+                "sink": {
+                  "type": "BinarySink",
+                  "storeSettings": {
+                    "type": "LakehouseWriteSettings"
+                  },
+                  "datasetSettings": {
+                    "type": "Binary",
+                    "typeProperties": {
+                      "location": {
+                        "type": "LakehouseLocation",
+                        "folderPath": {
+                          "value": "@concat('cdk-sftp','/',pipeline().parameters.box, '/', pipeline().parameters.config.source)",
+                          "type": "Expression"
+                        },
+                        "fileName": {
+                          "value": "@item().name",
+                          "type": "Expression"
+                        }
+                      }
+                    },
+                    "linkedService": {
+                      "name": "Bronze_v2",
+                      "properties": {
+                        "type": "Lakehouse",
+                        "typeProperties": {
+                          "artifactId": "db405f5a-a7ed-4a7f-a10d-e9ae273c0e4e",
+                          "workspaceId": "00000000-0000-0000-0000-000000000000",
+                          "rootFolder": "Files"
+                        },
+                        "annotations": []
+                      }
+                    },
+                    "annotations": []
+                  }
+                },
+                "enableStaging": false
+              },
+              "policy": {
+                "timeout": "0.12:00:00",
+                "retry": 0,
+                "retryIntervalInSeconds": 30,
+                "secureInput": false,
+                "secureOutput": false
+              },
+              "name": "Copy data from SFTP to Bronze Lakehouse",
+              "description": "Move new gpg files from SFTP to Bronze Lakehouse",
+              "dependsOn": [
+                {
+                  "activity": "Set csv name",
+                  "dependencyConditions": [
+                    "Succeeded"
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "TridentNotebook",
+              "typeProperties": {
+                "notebookId": "344bf89d-9a74-4efd-9e9d-1dbc8f6b1126",
+                "workspaceId": "00000000-0000-0000-0000-000000000000",
+                "parameters": {
+                  "input_path": {
+                    "value": {
+                      "value": "@concat('Files','/','cdk-sftp','/',pipeline().parameters.box, '/', pipeline().parameters.config.destination,  '/', item().name)",
+                      "type": "Expression"
+                    },
+                    "type": "string"
+                  },
+                  "output_path": {
+                    "value": {
+                      "value": "@concat('Files','/','cdk-sftp','/',pipeline().parameters.box, '/', pipeline().parameters.config.destination, '/', replace(item().name, '.gpg', ''))",
+                      "type": "Expression"
+                    },
+                    "type": "string"
+                  }
+                }
+              },
+              "policy": {
+                "timeout": "0.12:00:00",
+                "retry": 0,
+                "retryIntervalInSeconds": 30,
+                "secureInput": false,
+                "secureOutput": false
+              },
+              "name": "CDK Data Export Decryption Notebook",
+              "dependsOn": [
+                {
+                  "activity": "Copy data from SFTP to Bronze Lakehouse",
+                  "dependencyConditions": [
+                    "Succeeded"
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "GetMetadata",
+              "typeProperties": {
+                "datasetSettings": {
+                  "type": "DelimitedText",
+                  "typeProperties": {
+                    "location": {
+                      "type": "LakehouseLocation",
+                      "folderPath": {
+                        "value": "@concat('cdk-sftp','/',pipeline().parameters.box, '/', pipeline().parameters.config.source)",
+                        "type": "Expression"
+                      },
+                      "fileName": {
+                        "value": "@variables('csv name')",
+                        "type": "Expression"
+                      }
+                    },
+                    "columnDelimiter": ",",
+                    "quoteChar": "\"",
+                    "escapeChar": "\\",
+                    "firstRowAsHeader": true
+                  },
+                  "schema": [],
+                  "linkedService": {
+                    "name": "Bronze_v2",
+                    "properties": {
+                      "type": "Lakehouse",
+                      "typeProperties": {
+                        "artifactId": "db405f5a-a7ed-4a7f-a10d-e9ae273c0e4e",
+                        "workspaceId": "00000000-0000-0000-0000-000000000000",
+                        "rootFolder": "Files"
+                      },
+                      "annotations": []
+                    }
+                  },
+                  "annotations": []
+                },
+                "fieldList": [
+                  "size"
+                ],
+                "storeSettings": {
+                  "type": "LakehouseReadSettings",
+                  "recursive": true,
+                  "enablePartitionDiscovery": false
+                },
+                "formatSettings": {
+                  "type": "DelimitedTextReadSettings"
+                }
+              },
+              "policy": {
+                "timeout": "0.12:00:00",
+                "retry": 0,
+                "retryIntervalInSeconds": 30,
+                "secureInput": false,
+                "secureOutput": false
+              },
+              "name": "Non empty csv files",
+              "description": "This checks for empty files",
+              "dependsOn": [
+                {
+                  "activity": "CDK Data Export Decryption Notebook",
+                  "dependencyConditions": [
+                    "Succeeded"
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "IfCondition",
+              "typeProperties": {
+                "expression": {
+                  "value": "@not(equals(activity('Non empty csv files').output.size, 0))",
+                  "type": "Expression"
+                },
+                "ifTrueActivities": [
+                  {
+                    "type": "TridentNotebook",
+                    "typeProperties": {
+                      "notebookId": "1b90732d-bc73-47e6-8b40-64e4ecfa7a09",
+                      "workspaceId": "00000000-0000-0000-0000-000000000000",
+                      "parameters": {
+                        "input_path": {
+                          "value": {
+                            "value": "@concat('cdk-sftp','/',pipeline().parameters.box,'/',pipeline().parameters.config.source,'/',variables('csv name'))",
+                            "type": "Expression"
+                          },
+                          "type": "string"
+                        },
+                        "table_name": {
+                          "value": {
+                            "value": "@pipeline().parameters.config.destination",
+                            "type": "Expression"
+                          },
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "policy": {
+                      "timeout": "0.12:00:00",
+                      "retry": 0,
+                      "retryIntervalInSeconds": 30,
+                      "secureInput": false,
+                      "secureOutput": false
+                    },
+                    "name": "Upsert bronze files to Tables",
+                    "description": "This notebook upserts the incremental files into tables",
+                    "dependsOn": []
+                  },
+                  {
+                    "type": "Office365Outlook",
+                    "typeProperties": {
+                      "inputs": {
+                        "body": {
+                          "To": "mtirupathi@goauto.ca",
+                          "Subject": "Upsert into Bronze Tables failed",
+                          "Body": "<p>The Upsert activity Failed</p>\n<p>@{variables('csv name')}</p>\n<p>@{activity('Upsert bronze files to Tables').output}</p>",
+                          "Sensitivity": "",
+                          "Importance": "Normal"
+                        },
+                        "method": "post",
+                        "path": "/v2/Mail"
+                      }
+                    },
+                    "name": "Email alert for Upsert",
+                    "dependsOn": [
+                      {
+                        "activity": "Upsert bronze files to Tables",
+                        "dependencyConditions": [
+                          "Failed"
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "ifFalseActivities": [
+                  {
+                    "type": "SetVariable",
+                    "typeProperties": {
+                      "variableName": "InsertedCount",
+                      "value": 0
+                    },
+                    "policy": {
+                      "secureInput": false,
+                      "secureOutput": false
+                    },
+                    "name": "Empty file Record Count",
+                    "dependsOn": []
+                  },
+                  {
+                    "type": "Teams",
+                    "typeProperties": {
+                      "inputs": {
+                        "body": {
+                          "recipient": "19:a9fee64d17fd493fa73211a1076f8d34@thread.v2",
+                          "messageBody": "<p>The CDK file is empty</p>\n<p>@{pipeline().parameters.box}</p>\n<p>@{variables('csv name')}</p>"
+                        },
+                        "method": "post",
+                        "path": "/beta/teams/conversation/message/poster/User/location/Group chat"
+                      }
+                    },
+                    "name": "Alert to list empty files",
+                    "dependsOn": [
+                      {
+                        "activity": "Empty file Record Count",
+                        "dependencyConditions": [
+                          "Succeeded"
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              "name": "Non empty CSV check",
+              "dependsOn": [
+                {
+                  "activity": "Non empty csv files",
+                  "dependencyConditions": [
+                    "Succeeded"
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "GetMetadata",
+              "typeProperties": {
+                "datasetSettings": {
+                  "type": "Binary",
+                  "typeProperties": {
+                    "location": {
+                      "type": "SftpLocation",
+                      "folderPath": {
+                        "value": "@concat(pipeline().parameters.box,'/',pipeline().parameters.config.source)",
+                        "type": "Expression"
+                      }
+                    }
+                  },
+                  "externalReferences": {
+                    "connection": "719829c5-f6cc-4c88-aa82-14623ef4c8bd"
+                  },
+                  "annotations": []
+                },
+                "fieldList": [
+                  "lastModified"
+                ],
+                "storeSettings": {
+                  "type": "SftpReadSettings",
+                  "disableChunking": false,
+                  "recursive": true,
+                  "enablePartitionDiscovery": false
+                },
+                "formatSettings": {
+                  "type": "BinaryReadSettings"
+                }
+              },
+              "policy": {
+                "timeout": "0.12:00:00",
+                "retry": 0,
+                "retryIntervalInSeconds": 30,
+                "secureInput": false,
+                "secureOutput": false
+              },
+              "name": "Get Last Modified timestamp",
+              "dependsOn": [
+                {
+                  "activity": "Non empty CSV check",
+                  "dependencyConditions": [
+                    "Succeeded"
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "TridentNotebook",
+              "typeProperties": {
+                "notebookId": "f2e8c84b-fbe6-43c0-a6b5-12e5982adb9e",
+                "workspaceId": "00000000-0000-0000-0000-000000000000",
+                "parameters": {
+                  "Watermark_date": {
+                    "value": {
+                      "value": "@activity('Get Last Modified timestamp').output.lastModified",
+                      "type": "Expression"
+                    },
+                    "type": "string"
+                  },
+                  "TableName": {
+                    "value": {
+                      "value": "@pipeline().parameters.config.destination",
+                      "type": "Expression"
+                    },
+                    "type": "string"
+                  },
+                  "DabeSource": {
+                    "value": {
+                      "value": "@pipeline().parameters.box",
+                      "type": "Expression"
+                    },
+                    "type": "string"
+                  },
+                  "RowCreatedDate": {
+                    "value": {
+                      "value": "@convertTimeZone(utcNow(), 'UTC', 'Mountain Standard Time')",
+                      "type": "Expression"
+                    },
+                    "type": "string"
+                  },
+                  "PipelineName": {
+                    "value": {
+                      "value": "@pipeline().PipelineName",
+                      "type": "Expression"
+                    },
+                    "type": "string"
+                  },
+                  "PipelineRunID": {
+                    "value": {
+                      "value": "@pipeline().RunId",
+                      "type": "Expression"
+                    },
+                    "type": "string"
+                  },
+                  "RecordCount": {
+                    "value": {
+                      "value": "@variables('InsertedCount')",
+                      "type": "Expression"
+                    },
+                    "type": "int"
+                  },
+                  "Filename": {
+                    "value": {
+                      "value": "@variables('csv name')",
+                      "type": "Expression"
+                    },
+                    "type": "string"
+                  }
+                }
+              },
+              "policy": {
+                "timeout": "0.12:00:00",
+                "retry": 0,
+                "retryIntervalInSeconds": 30,
+                "secureInput": false,
+                "secureOutput": false
+              },
+              "name": "Update Dabe Watermark and Insert into ETL history",
+              "dependsOn": [
+                {
+                  "activity": "Get Last Modified timestamp",
+                  "dependencyConditions": [
+                    "Succeeded"
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "Delete",
+              "typeProperties": {
+                "enableLogging": false,
+                "datasetSettings": {
+                  "type": "Binary",
+                  "typeProperties": {
+                    "location": {
+                      "type": "LakehouseLocation",
+                      "folderPath": {
+                        "value": "@concat('cdk-sftp','/',pipeline().parameters.box, '/', pipeline().parameters.config.source)",
+                        "type": "Expression"
+                      }
+                    }
+                  },
+                  "linkedService": {
+                    "name": "Bronze_v2",
+                    "properties": {
+                      "type": "Lakehouse",
+                      "typeProperties": {
+                        "artifactId": "db405f5a-a7ed-4a7f-a10d-e9ae273c0e4e",
+                        "workspaceId": "00000000-0000-0000-0000-000000000000",
+                        "rootFolder": "Files"
+                      },
+                      "annotations": []
+                    }
+                  },
+                  "annotations": []
+                },
+                "storeSettings": {
+                  "type": "LakehouseReadSettings",
+                  "recursive": true,
+                  "enablePartitionDiscovery": false
+                }
+              },
+              "policy": {
+                "timeout": "0.12:00:00",
+                "retry": 0,
+                "retryIntervalInSeconds": 30,
+                "secureInput": false,
+                "secureOutput": false
+              },
+              "name": "Delete incremental from Bronze Files",
+              "dependsOn": [
+                {
+                  "activity": "Update Dabe Watermark and Insert into ETL history",
+                  "dependencyConditions": [
+                    "Succeeded"
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "Office365Outlook",
+              "typeProperties": {
+                "inputs": {
+                  "body": {
+                    "To": "mtirupathi@goauto.ca",
+                    "Subject": "Failed to copy files from CDK SFTP to Bronze Files",
+                    "Body": "<p>@{activity('Copy data from SFTP to Bronze Lakehouse').output}</p>",
+                    "Sensitivity": "",
+                    "Importance": "Normal"
+                  },
+                  "method": "post",
+                  "path": "/v2/Mail"
+                }
+              },
+              "name": "Alert for Copy from SFTP to Files Failure",
+              "dependsOn": [
+                {
+                  "activity": "Copy data from SFTP to Bronze Lakehouse",
+                  "dependencyConditions": [
+                    "Failed"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "name": "ForEach1",
+        "dependsOn": []
+      }
+    ],
+    "parameters": {
+      "box": {
+        "type": "string"
+      },
+      "destinationPath": {
+        "type": "string"
+      },
+      "inputFiles": {
+        "type": "array"
+      },
+      "config": {
+        "type": "object"
+      }
+    },
+    "variables": {
+      "temp": {
+        "type": "String"
+      },
+      "csv name": {
+        "type": "String"
+      },
+      "InsertedCount": {
+        "type": "Integer",
+        "defaultValue": 0
+      }
+    }
+  }
+}

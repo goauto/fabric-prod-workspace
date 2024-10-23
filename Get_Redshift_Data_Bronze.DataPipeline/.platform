@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "DataPipeline",
+    "displayName": "Get_Redshift_Data_Bronze"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "e57b899e-67af-4f88-a2a0-13155e44c4c7"
+  }
+}

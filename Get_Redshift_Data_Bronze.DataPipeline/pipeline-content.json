@@ -1,0 +1,1690 @@
+{
+  "properties": {
+    "activities": [
+      {
+        "type": "ForEach",
+        "typeProperties": {
+          "items": {
+            "value": "@pipeline().parameters.tables",
+            "type": "Expression"
+          },
+          "activities": [
+            {
+              "type": "Copy",
+              "typeProperties": {
+                "source": {
+                  "type": "AmazonRedshiftSource",
+                  "datasetSettings": {
+                    "type": "AmazonRedshiftTable",
+                    "typeProperties": {
+                      "schema": {
+                        "value": "@item().schema",
+                        "type": "Expression"
+                      },
+                      "table": {
+                        "value": "@item().source_table",
+                        "type": "Expression"
+                      }
+                    },
+                    "schema": [],
+                    "externalReferences": {
+                      "connection": "8c3ec16b-63bd-4051-80ed-f9f1a8cb69b2"
+                    },
+                    "annotations": []
+                  }
+                },
+                "sink": {
+                  "type": "LakehouseTableSink",
+                  "tableActionOption": "OverwriteSchema",
+                  "partitionOption": "None",
+                  "datasetSettings": {
+                    "type": "LakehouseTable",
+                    "typeProperties": {
+                      "schema": "redshift",
+                      "table": {
+                        "value": "@item().destination_table",
+                        "type": "Expression"
+                      }
+                    },
+                    "schema": [],
+                    "linkedService": {
+                      "name": "Bronze",
+                      "properties": {
+                        "type": "Lakehouse",
+                        "typeProperties": {
+                          "artifactId": "b705b9cd-f3c8-4bad-b2f1-26f60add10a2",
+                          "workspaceId": "00000000-0000-0000-0000-000000000000",
+                          "rootFolder": "Tables"
+                        },
+                        "annotations": []
+                      }
+                    },
+                    "annotations": []
+                  }
+                },
+                "translator": {
+                  "type": "TabularTranslator",
+                  "typeConversion": true,
+                  "typeConversionSettings": {
+                    "allowDataTruncation": true,
+                    "treatBooleanAsNumber": false
+                  }
+                },
+                "enableStaging": false
+              },
+              "policy": {
+                "timeout": "0.12:00:00",
+                "retry": 0,
+                "retryIntervalInSeconds": 30,
+                "secureInput": false,
+                "secureOutput": false
+              },
+              "name": "Copy Redshift tables",
+              "dependsOn": []
+            }
+          ]
+        },
+        "name": "ForEach1",
+        "dependsOn": []
+      },
+      {
+        "type": "Copy",
+        "typeProperties": {
+          "source": {
+            "type": "AmazonRedshiftSource",
+            "query": "Select * from marketsms_vw_tbl\nWhere date_delivered > DATE_TRUNC('MONTH', CURRENT_DATE - INTERVAL '4 months') + INTERVAL '1 month' - INTERVAL '1 day'",
+            "datasetSettings": {
+              "type": "AmazonRedshiftTable",
+              "typeProperties": {
+                "schema": "goauto_bi",
+                "table": "iterable_email_tbl"
+              },
+              "schema": [],
+              "externalReferences": {
+                "connection": "8c3ec16b-63bd-4051-80ed-f9f1a8cb69b2"
+              },
+              "annotations": []
+            }
+          },
+          "sink": {
+            "type": "LakehouseTableSink",
+            "tableActionOption": "OverwriteSchema",
+            "partitionOption": "None",
+            "datasetSettings": {
+              "type": "LakehouseTable",
+              "typeProperties": {
+                "schema": "redshift",
+                "table": "marketsms"
+              },
+              "schema": [],
+              "linkedService": {
+                "name": "Bronze",
+                "properties": {
+                  "type": "Lakehouse",
+                  "typeProperties": {
+                    "artifactId": "b705b9cd-f3c8-4bad-b2f1-26f60add10a2",
+                    "workspaceId": "00000000-0000-0000-0000-000000000000",
+                    "rootFolder": "Tables"
+                  },
+                  "annotations": []
+                }
+              },
+              "annotations": []
+            }
+          },
+          "translator": {
+            "type": "TabularTranslator",
+            "mappings": [
+              {
+                "source": {
+                  "name": "sms_gateway_name",
+                  "type": "String",
+                  "physicalType": "varchar"
+                },
+                "sink": {
+                  "name": "sms_gateway_name",
+                  "physicalType": "string"
+                }
+              },
+              {
+                "source": {
+                  "name": "customer_id",
+                  "type": "String",
+                  "physicalType": "varchar"
+                },
+                "sink": {
+                  "name": "customer_id",
+                  "physicalType": "string"
+                }
+              },
+              {
+                "source": {
+                  "name": "fullname",
+                  "type": "String",
+                  "physicalType": "varchar"
+                },
+                "sink": {
+                  "name": "fullname",
+                  "physicalType": "string"
+                }
+              },
+              {
+                "source": {
+                  "name": "phone",
+                  "type": "String",
+                  "physicalType": "varchar"
+                },
+                "sink": {
+                  "name": "phone",
+                  "physicalType": "string"
+                }
+              },
+              {
+                "source": {
+                  "name": "year",
+                  "type": "Int64",
+                  "physicalType": "int8"
+                },
+                "sink": {
+                  "name": "year",
+                  "physicalType": "long"
+                }
+              },
+              {
+                "source": {
+                  "name": "make",
+                  "type": "String",
+                  "physicalType": "varchar"
+                },
+                "sink": {
+                  "name": "make",
+                  "physicalType": "string"
+                }
+              },
+              {
+                "source": {
+                  "name": "model",
+                  "type": "String",
+                  "physicalType": "varchar"
+                },
+                "sink": {
+                  "name": "model",
+                  "physicalType": "string"
+                }
+              },
+              {
+                "source": {
+                  "name": "vin",
+                  "type": "String",
+                  "physicalType": "varchar"
+                },
+                "sink": {
+                  "name": "vin",
+                  "physicalType": "string"
+                }
+              },
+              {
+                "source": {
+                  "name": "conversation_id",
+                  "type": "Int64",
+                  "physicalType": "int8"
+                },
+                "sink": {
+                  "name": "conversation_id",
+                  "physicalType": "long"
+                }
+              },
+              {
+                "source": {
+                  "name": "date_delivered",
+                  "type": "DateTime",
+                  "physicalType": "timestamp"
+                },
+                "sink": {
+                  "name": "date_delivered",
+                  "physicalType": "timestamp"
+                }
+              },
+              {
+                "source": {
+                  "name": "sent_from",
+                  "type": "String",
+                  "physicalType": "varchar"
+                },
+                "sink": {
+                  "name": "sent_from",
+                  "physicalType": "string"
+                }
+              },
+              {
+                "source": {
+                  "name": "sent_to",
+                  "type": "String",
+                  "physicalType": "varchar"
+                },
+                "sink": {
+                  "name": "sent_to",
+                  "physicalType": "string"
+                }
+              },
+              {
+                "source": {
+                  "name": "direction",
+                  "type": "String",
+                  "physicalType": "varchar"
+                },
+                "sink": {
+                  "name": "direction",
+                  "physicalType": "string"
+                }
+              },
+              {
+                "source": {
+                  "name": "body",
+                  "type": "String",
+                  "physicalType": "varchar"
+                },
+                "sink": {
+                  "name": "body",
+                  "physicalType": "string"
+                }
+              },
+              {
+                "source": {
+                  "name": "bulk_send_label",
+                  "type": "String",
+                  "physicalType": "varchar"
+                },
+                "sink": {
+                  "name": "bulk_send_label",
+                  "physicalType": "string"
+                }
+              },
+              {
+                "source": {
+                  "name": "bulksend_id",
+                  "type": "Int64",
+                  "physicalType": "int8"
+                },
+                "sink": {
+                  "name": "bulksend_id",
+                  "physicalType": "long"
+                }
+              },
+              {
+                "source": {
+                  "name": "id",
+                  "type": "String",
+                  "physicalType": "varchar"
+                },
+                "sink": {
+                  "name": "id",
+                  "physicalType": "string"
+                }
+              },
+              {
+                "source": {
+                  "name": "value",
+                  "type": "String",
+                  "physicalType": "varchar"
+                },
+                "sink": {
+                  "name": "value",
+                  "physicalType": "string"
+                }
+              },
+              {
+                "source": {
+                  "name": "lead_dealer_id",
+                  "type": "Double",
+                  "physicalType": "float8"
+                },
+                "sink": {
+                  "name": "lead_dealer_id",
+                  "physicalType": "long"
+                }
+              },
+              {
+                "source": {
+                  "name": "opportunity_ended",
+                  "type": "String",
+                  "physicalType": "varchar"
+                },
+                "sink": {
+                  "name": "opportunity_ended",
+                  "physicalType": "string"
+                }
+              },
+              {
+                "source": {
+                  "name": "opp_dealer_id",
+                  "type": "Int64",
+                  "physicalType": "int8"
+                },
+                "sink": {
+                  "name": "opp_dealer_id",
+                  "physicalType": "long"
+                }
+              },
+              {
+                "source": {
+                  "name": "dms_deal__total_gross",
+                  "type": "Double",
+                  "physicalType": "float8"
+                },
+                "sink": {
+                  "name": "dms_deal__total_gross",
+                  "physicalType": "double"
+                }
+              },
+              {
+                "source": {
+                  "name": "opportunity_id",
+                  "type": "String",
+                  "physicalType": "varchar"
+                },
+                "sink": {
+                  "name": "opportunity_id",
+                  "physicalType": "string"
+                }
+              },
+              {
+                "source": {
+                  "name": "delivery_status",
+                  "type": "String",
+                  "physicalType": "varchar"
+                },
+                "sink": {
+                  "name": "delivery_status",
+                  "physicalType": "string"
+                }
+              },
+              {
+                "source": {
+                  "name": "dms_deal__deal_number__string",
+                  "type": "String",
+                  "physicalType": "varchar"
+                },
+                "sink": {
+                  "name": "dms_deal__deal_number__string",
+                  "physicalType": "string"
+                }
+              },
+              {
+                "source": {
+                  "name": "dms_deal__stock_number",
+                  "type": "String",
+                  "physicalType": "varchar"
+                },
+                "sink": {
+                  "name": "dms_deal__stock_number",
+                  "physicalType": "string"
+                }
+              },
+              {
+                "source": {
+                  "name": "dms_deal__vin",
+                  "type": "String",
+                  "physicalType": "varchar"
+                },
+                "sink": {
+                  "name": "dms_deal__vin",
+                  "physicalType": "string"
+                }
+              },
+              {
+                "source": {
+                  "name": "dms_deal__year__string",
+                  "type": "String",
+                  "physicalType": "varchar"
+                },
+                "sink": {
+                  "name": "dms_deal__year__string",
+                  "physicalType": "string"
+                }
+              },
+              {
+                "source": {
+                  "name": "dms_deal__make_name",
+                  "type": "String",
+                  "physicalType": "varchar"
+                },
+                "sink": {
+                  "name": "dms_deal__make_name",
+                  "physicalType": "string"
+                }
+              },
+              {
+                "source": {
+                  "name": "dms_deal__model_name",
+                  "type": "String",
+                  "physicalType": "varchar"
+                },
+                "sink": {
+                  "name": "dms_deal__model_name",
+                  "physicalType": "string"
+                }
+              },
+              {
+                "source": {
+                  "name": "dms_deal__total_gross__double",
+                  "type": "Double",
+                  "physicalType": "float8"
+                },
+                "sink": {
+                  "name": "dms_deal__total_gross__double",
+                  "physicalType": "double"
+                }
+              },
+              {
+                "source": {
+                  "name": "dms_deal__deal_type",
+                  "type": "String",
+                  "physicalType": "varchar"
+                },
+                "sink": {
+                  "name": "dms_deal__deal_type",
+                  "physicalType": "string"
+                }
+              }
+            ],
+            "typeConversion": true,
+            "typeConversionSettings": {
+              "allowDataTruncation": true,
+              "treatBooleanAsNumber": false
+            }
+          },
+          "enableStaging": false
+        },
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "Copy data from redshift iterable_email_tbl",
+        "dependsOn": [
+          {
+            "activity": "ForEach1",
+            "dependencyConditions": [
+              "Completed"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Copy",
+        "typeProperties": {
+          "source": {
+            "type": "AmazonRedshiftSource",
+            "query": "Select * from iterable_email_tbl\nWhere received_at > DATE_TRUNC('MONTH', CURRENT_DATE - INTERVAL '4 months') + INTERVAL '1 month' - INTERVAL '1 day'",
+            "datasetSettings": {
+              "type": "AmazonRedshiftTable",
+              "typeProperties": {
+                "schema": "goauto_bi",
+                "table": "iterable_email_tbl"
+              },
+              "schema": [],
+              "externalReferences": {
+                "connection": "8c3ec16b-63bd-4051-80ed-f9f1a8cb69b2"
+              },
+              "annotations": []
+            }
+          },
+          "sink": {
+            "type": "LakehouseTableSink",
+            "tableActionOption": "OverwriteSchema",
+            "partitionOption": "None",
+            "datasetSettings": {
+              "type": "LakehouseTable",
+              "typeProperties": {
+                "schema": "redshift",
+                "table": "iterable_email"
+              },
+              "schema": [],
+              "linkedService": {
+                "name": "Bronze",
+                "properties": {
+                  "type": "Lakehouse",
+                  "typeProperties": {
+                    "artifactId": "b705b9cd-f3c8-4bad-b2f1-26f60add10a2",
+                    "workspaceId": "00000000-0000-0000-0000-000000000000",
+                    "rootFolder": "Tables"
+                  },
+                  "annotations": []
+                }
+              },
+              "annotations": []
+            }
+          },
+          "translator": {
+            "type": "TabularTranslator",
+            "mappings": [
+              {
+                "source": {
+                  "name": "created_at",
+                  "type": "String",
+                  "physicalType": "varchar"
+                },
+                "sink": {
+                  "name": "created_at",
+                  "physicalType": "string"
+                }
+              },
+              {
+                "source": {
+                  "name": "received_at",
+                  "type": "DateTime",
+                  "physicalType": "timestamp"
+                },
+                "sink": {
+                  "name": "received_at",
+                  "physicalType": "timestamp"
+                }
+              },
+              {
+                "source": {
+                  "name": "user_id",
+                  "type": "String",
+                  "physicalType": "varchar"
+                },
+                "sink": {
+                  "name": "user_id",
+                  "physicalType": "string"
+                }
+              },
+              {
+                "source": {
+                  "name": "email",
+                  "type": "String",
+                  "physicalType": "varchar"
+                },
+                "sink": {
+                  "name": "email",
+                  "physicalType": "string"
+                }
+              },
+              {
+                "source": {
+                  "name": "workflow_name",
+                  "type": "String",
+                  "physicalType": "varchar"
+                },
+                "sink": {
+                  "name": "workflow_name",
+                  "physicalType": "string"
+                }
+              },
+              {
+                "source": {
+                  "name": "workflow_id",
+                  "type": "Int64",
+                  "physicalType": "int8"
+                },
+                "sink": {
+                  "name": "workflow_id",
+                  "physicalType": "long"
+                }
+              },
+              {
+                "source": {
+                  "name": "campaign_name",
+                  "type": "String",
+                  "physicalType": "varchar"
+                },
+                "sink": {
+                  "name": "campaign_name",
+                  "physicalType": "string"
+                }
+              },
+              {
+                "source": {
+                  "name": "email_subject",
+                  "type": "String",
+                  "physicalType": "varchar"
+                },
+                "sink": {
+                  "name": "email_subject",
+                  "physicalType": "string"
+                }
+              },
+              {
+                "source": {
+                  "name": "template_name",
+                  "type": "String",
+                  "physicalType": "varchar"
+                },
+                "sink": {
+                  "name": "template_name",
+                  "physicalType": "string"
+                }
+              },
+              {
+                "source": {
+                  "name": "channel_id",
+                  "type": "Int64",
+                  "physicalType": "int8"
+                },
+                "sink": {
+                  "name": "channel_id",
+                  "physicalType": "long"
+                }
+              },
+              {
+                "source": {
+                  "name": "message_id",
+                  "type": "String",
+                  "physicalType": "varchar"
+                },
+                "sink": {
+                  "name": "message_id",
+                  "physicalType": "string"
+                }
+              },
+              {
+                "source": {
+                  "name": "message_type_id",
+                  "type": "Int64",
+                  "physicalType": "int8"
+                },
+                "sink": {
+                  "name": "message_type_id",
+                  "physicalType": "long"
+                }
+              },
+              {
+                "source": {
+                  "name": "transactional_data",
+                  "type": "String",
+                  "physicalType": "varchar"
+                },
+                "sink": {
+                  "name": "transactional_data",
+                  "physicalType": "string"
+                }
+              },
+              {
+                "source": {
+                  "name": "vin",
+                  "type": "String",
+                  "physicalType": "varchar"
+                },
+                "sink": {
+                  "name": "vin",
+                  "physicalType": "string"
+                }
+              },
+              {
+                "source": {
+                  "name": "year",
+                  "type": "Int64",
+                  "physicalType": "int8"
+                },
+                "sink": {
+                  "name": "year",
+                  "physicalType": "long"
+                }
+              },
+              {
+                "source": {
+                  "name": "make",
+                  "type": "String",
+                  "physicalType": "varchar"
+                },
+                "sink": {
+                  "name": "make",
+                  "physicalType": "string"
+                }
+              },
+              {
+                "source": {
+                  "name": "model",
+                  "type": "String",
+                  "physicalType": "varchar"
+                },
+                "sink": {
+                  "name": "model",
+                  "physicalType": "string"
+                }
+              },
+              {
+                "source": {
+                  "name": "_id",
+                  "type": "String",
+                  "physicalType": "varchar"
+                },
+                "sink": {
+                  "name": "_id",
+                  "physicalType": "string"
+                }
+              },
+              {
+                "source": {
+                  "name": "fullname",
+                  "type": "String",
+                  "physicalType": "varchar"
+                },
+                "sink": {
+                  "name": "fullname",
+                  "physicalType": "string"
+                }
+              },
+              {
+                "source": {
+                  "name": "phone",
+                  "type": "String",
+                  "physicalType": "varchar"
+                },
+                "sink": {
+                  "name": "phone",
+                  "physicalType": "string"
+                }
+              },
+              {
+                "source": {
+                  "name": "hostdb",
+                  "type": "String",
+                  "physicalType": "varchar"
+                },
+                "sink": {
+                  "name": "hostdb",
+                  "physicalType": "string"
+                }
+              },
+              {
+                "source": {
+                  "name": "message_type",
+                  "type": "String",
+                  "physicalType": "varchar"
+                },
+                "sink": {
+                  "name": "message_type",
+                  "physicalType": "string"
+                }
+              },
+              {
+                "source": {
+                  "name": "opportunity_ended",
+                  "type": "String",
+                  "physicalType": "varchar"
+                },
+                "sink": {
+                  "name": "opportunity_ended",
+                  "physicalType": "string"
+                }
+              },
+              {
+                "source": {
+                  "name": "deal_hostdb",
+                  "type": "String",
+                  "physicalType": "varchar"
+                },
+                "sink": {
+                  "name": "deal_hostdb",
+                  "physicalType": "string"
+                }
+              },
+              {
+                "source": {
+                  "name": "dms_deal__total_gross",
+                  "type": "Double",
+                  "physicalType": "float8"
+                },
+                "sink": {
+                  "name": "dms_deal__total_gross",
+                  "physicalType": "double"
+                }
+              },
+              {
+                "source": {
+                  "name": "opportunity_id",
+                  "type": "String",
+                  "physicalType": "varchar"
+                },
+                "sink": {
+                  "name": "opportunity_id",
+                  "physicalType": "string"
+                }
+              },
+              {
+                "source": {
+                  "name": "deal_dealer_id",
+                  "type": "Int64",
+                  "physicalType": "int8"
+                },
+                "sink": {
+                  "name": "deal_dealer_id",
+                  "physicalType": "long"
+                }
+              },
+              {
+                "source": {
+                  "name": "dms_deal__deal_number__string",
+                  "type": "String",
+                  "physicalType": "varchar"
+                },
+                "sink": {
+                  "name": "dms_deal__deal_number__string",
+                  "physicalType": "string"
+                }
+              },
+              {
+                "source": {
+                  "name": "dms_deal__stock_number",
+                  "type": "String",
+                  "physicalType": "varchar"
+                },
+                "sink": {
+                  "name": "dms_deal__stock_number",
+                  "physicalType": "string"
+                }
+              },
+              {
+                "source": {
+                  "name": "dms_deal__vin",
+                  "type": "String",
+                  "physicalType": "varchar"
+                },
+                "sink": {
+                  "name": "dms_deal__vin",
+                  "physicalType": "string"
+                }
+              },
+              {
+                "source": {
+                  "name": "dms_deal__year__string",
+                  "type": "String",
+                  "physicalType": "varchar"
+                },
+                "sink": {
+                  "name": "dms_deal__year__string",
+                  "physicalType": "string"
+                }
+              },
+              {
+                "source": {
+                  "name": "dms_deal__make_name",
+                  "type": "String",
+                  "physicalType": "varchar"
+                },
+                "sink": {
+                  "name": "dms_deal__make_name",
+                  "physicalType": "string"
+                }
+              },
+              {
+                "source": {
+                  "name": "dms_deal__model_name",
+                  "type": "String",
+                  "physicalType": "varchar"
+                },
+                "sink": {
+                  "name": "dms_deal__model_name",
+                  "physicalType": "string"
+                }
+              },
+              {
+                "source": {
+                  "name": "dms_deal__total_gross__double",
+                  "type": "Double",
+                  "physicalType": "float8"
+                },
+                "sink": {
+                  "name": "dms_deal__total_gross__double",
+                  "physicalType": "double"
+                }
+              },
+              {
+                "source": {
+                  "name": "dms_deal__deal_type",
+                  "type": "String",
+                  "physicalType": "varchar"
+                },
+                "sink": {
+                  "name": "dms_deal__deal_type",
+                  "physicalType": "string"
+                }
+              },
+              {
+                "source": {
+                  "name": "opened",
+                  "type": "DateTime",
+                  "physicalType": "timestamp"
+                },
+                "sink": {
+                  "name": "opened",
+                  "physicalType": "timestamp"
+                }
+              },
+              {
+                "source": {
+                  "name": "clicked",
+                  "type": "DateTime",
+                  "physicalType": "timestamp"
+                },
+                "sink": {
+                  "name": "clicked",
+                  "physicalType": "timestamp"
+                }
+              },
+              {
+                "source": {
+                  "name": "email_open",
+                  "type": "Int32",
+                  "physicalType": "int4"
+                },
+                "sink": {
+                  "name": "email_open",
+                  "physicalType": "integer"
+                }
+              },
+              {
+                "source": {
+                  "name": "email_link_clicked",
+                  "type": "Int32",
+                  "physicalType": "int4"
+                },
+                "sink": {
+                  "name": "email_link_clicked",
+                  "physicalType": "integer"
+                }
+              },
+              {
+                "source": {
+                  "name": "category",
+                  "type": "String",
+                  "physicalType": "varchar"
+                },
+                "sink": {
+                  "name": "category",
+                  "physicalType": "string"
+                }
+              },
+              {
+                "source": {
+                  "name": "term",
+                  "type": "String",
+                  "physicalType": "varchar"
+                },
+                "sink": {
+                  "name": "term",
+                  "physicalType": "string"
+                }
+              },
+              {
+                "source": {
+                  "name": "service appt type",
+                  "type": "String",
+                  "physicalType": "varchar"
+                },
+                "sink": {
+                  "name": "service_appt_type",
+                  "physicalType": "string"
+                }
+              },
+              {
+                "source": {
+                  "name": "email appointmented booked",
+                  "type": "String",
+                  "physicalType": "varchar"
+                },
+                "sink": {
+                  "name": "email_appointmented_booked",
+                  "physicalType": "string"
+                }
+              },
+              {
+                "source": {
+                  "name": "ro dealership",
+                  "type": "Int64",
+                  "physicalType": "int8"
+                },
+                "sink": {
+                  "name": "ro_dealership",
+                  "physicalType": "long"
+                }
+              },
+              {
+                "source": {
+                  "name": "opportunity_created",
+                  "type": "String",
+                  "physicalType": "varchar"
+                },
+                "sink": {
+                  "name": "opportunity_created",
+                  "physicalType": "string"
+                }
+              },
+              {
+                "source": {
+                  "name": "delivered to created gap",
+                  "type": "Int32",
+                  "physicalType": "int4"
+                },
+                "sink": {
+                  "name": "delivered_to_created_gap",
+                  "physicalType": "integer"
+                }
+              },
+              {
+                "source": {
+                  "name": "revival bucket",
+                  "type": "String",
+                  "physicalType": "varchar"
+                },
+                "sink": {
+                  "name": "revival_bucket",
+                  "physicalType": "string"
+                }
+              },
+              {
+                "source": {
+                  "name": "oppurtunity deal_id",
+                  "type": "Int64",
+                  "physicalType": "int8"
+                },
+                "sink": {
+                  "name": "oppurtunity_deal_id",
+                  "physicalType": "long"
+                }
+              },
+              {
+                "source": {
+                  "name": "pending deals",
+                  "type": "Int64",
+                  "physicalType": "int8"
+                },
+                "sink": {
+                  "name": "pending_deals",
+                  "physicalType": "long"
+                }
+              },
+              {
+                "source": {
+                  "name": "same store deal",
+                  "type": "Int32",
+                  "physicalType": "int4"
+                },
+                "sink": {
+                  "name": "same_store_deal",
+                  "physicalType": "integer"
+                }
+              },
+              {
+                "source": {
+                  "name": "carryover deals",
+                  "type": "Int64",
+                  "physicalType": "int8"
+                },
+                "sink": {
+                  "name": "carryover_deals",
+                  "physicalType": "long"
+                }
+              },
+              {
+                "source": {
+                  "name": "closed ro number email",
+                  "type": "String",
+                  "physicalType": "varchar"
+                },
+                "sink": {
+                  "name": "closed_ro_number_email",
+                  "physicalType": "string"
+                }
+              },
+              {
+                "source": {
+                  "name": "lead_dealer_id",
+                  "type": "Double",
+                  "physicalType": "float8"
+                },
+                "sink": {
+                  "name": "lead_dealer_id",
+                  "physicalType": "long"
+                }
+              },
+              {
+                "source": {
+                  "name": "same store opp",
+                  "type": "Int32",
+                  "physicalType": "int4"
+                },
+                "sink": {
+                  "name": "same_store_opp",
+                  "physicalType": "integer"
+                }
+              },
+              {
+                "source": {
+                  "name": "created",
+                  "type": "String",
+                  "physicalType": "varchar"
+                },
+                "sink": {
+                  "name": "created",
+                  "physicalType": "string"
+                }
+              },
+              {
+                "source": {
+                  "name": "appointmentdate",
+                  "type": "DateTime",
+                  "physicalType": "timestamp"
+                },
+                "sink": {
+                  "name": "appointmentdate",
+                  "physicalType": "timestamp"
+                }
+              },
+              {
+                "source": {
+                  "name": "apptopendate",
+                  "type": "DateTime",
+                  "physicalType": "timestamp"
+                },
+                "sink": {
+                  "name": "apptopendate",
+                  "physicalType": "timestamp"
+                }
+              },
+              {
+                "source": {
+                  "name": "future_appointment",
+                  "type": "Int32",
+                  "physicalType": "int4"
+                },
+                "sink": {
+                  "name": "future_appointment",
+                  "physicalType": "integer"
+                }
+              },
+              {
+                "source": {
+                  "name": "appt_dealer_id",
+                  "type": "Int64",
+                  "physicalType": "int8"
+                },
+                "sink": {
+                  "name": "appt_dealer_id",
+                  "physicalType": "long"
+                }
+              },
+              {
+                "source": {
+                  "name": "appointment_id",
+                  "type": "String",
+                  "physicalType": "varchar"
+                },
+                "sink": {
+                  "name": "appointment_id",
+                  "physicalType": "string"
+                }
+              }
+            ],
+            "typeConversion": true,
+            "typeConversionSettings": {
+              "allowDataTruncation": true,
+              "treatBooleanAsNumber": false
+            }
+          },
+          "enableStaging": false
+        },
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "Copy data from iterable_email table",
+        "dependsOn": [
+          {
+            "activity": "Copy data from redshift iterable_email_tbl",
+            "dependencyConditions": [
+              "Completed"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Copy",
+        "typeProperties": {
+          "source": {
+            "type": "AmazonRedshiftSource",
+            "query": "Select * from marketingeffectiveness_vw_tbl\nWhere received_at > '2022-08-31'",
+            "datasetSettings": {
+              "type": "AmazonRedshiftTable",
+              "typeProperties": {
+                "schema": "goauto_bi",
+                "table": "marketingeffectiveness_vw_tbl"
+              },
+              "schema": [],
+              "externalReferences": {
+                "connection": "8c3ec16b-63bd-4051-80ed-f9f1a8cb69b2"
+              },
+              "annotations": []
+            }
+          },
+          "sink": {
+            "type": "LakehouseTableSink",
+            "tableActionOption": "OverwriteSchema",
+            "partitionOption": "None",
+            "datasetSettings": {
+              "type": "LakehouseTable",
+              "typeProperties": {
+                "schema": "redshift",
+                "table": "marketingeffectiveness_vw_tbl"
+              },
+              "schema": [],
+              "linkedService": {
+                "name": "Bronze",
+                "properties": {
+                  "type": "Lakehouse",
+                  "typeProperties": {
+                    "artifactId": "b705b9cd-f3c8-4bad-b2f1-26f60add10a2",
+                    "workspaceId": "00000000-0000-0000-0000-000000000000",
+                    "rootFolder": "Tables"
+                  },
+                  "annotations": []
+                }
+              },
+              "annotations": []
+            }
+          },
+          "translator": {
+            "type": "TabularTranslator",
+            "mappings": [
+              {
+                "source": {
+                  "name": "deal_dealer_id",
+                  "type": "Int64",
+                  "physicalType": "int8"
+                },
+                "sink": {
+                  "name": "deal_dealer_id",
+                  "physicalType": "long"
+                }
+              },
+              {
+                "source": {
+                  "name": "channel_id",
+                  "type": "Int64",
+                  "physicalType": "int8"
+                },
+                "sink": {
+                  "name": "channel_id",
+                  "physicalType": "long"
+                }
+              },
+              {
+                "source": {
+                  "name": "user_id",
+                  "type": "String",
+                  "physicalType": "varchar"
+                },
+                "sink": {
+                  "name": "user_id",
+                  "physicalType": "string"
+                }
+              },
+              {
+                "source": {
+                  "name": "email",
+                  "type": "String",
+                  "physicalType": "varchar"
+                },
+                "sink": {
+                  "name": "email",
+                  "physicalType": "string"
+                }
+              },
+              {
+                "source": {
+                  "name": "campaign_name",
+                  "type": "String",
+                  "physicalType": "varchar"
+                },
+                "sink": {
+                  "name": "campaign_name",
+                  "physicalType": "string"
+                }
+              },
+              {
+                "source": {
+                  "name": "received_at",
+                  "type": "DateTime",
+                  "physicalType": "timestamp"
+                },
+                "sink": {
+                  "name": "received_at",
+                  "physicalType": "timestamp"
+                }
+              },
+              {
+                "source": {
+                  "name": "hostdb",
+                  "type": "String",
+                  "physicalType": "varchar"
+                },
+                "sink": {
+                  "name": "hostdb",
+                  "physicalType": "string"
+                }
+              },
+              {
+                "source": {
+                  "name": "opened",
+                  "type": "DateTime",
+                  "physicalType": "timestamp"
+                },
+                "sink": {
+                  "name": "opened",
+                  "physicalType": "timestamp"
+                }
+              },
+              {
+                "source": {
+                  "name": "clicked",
+                  "type": "DateTime",
+                  "physicalType": "timestamp"
+                },
+                "sink": {
+                  "name": "clicked",
+                  "physicalType": "timestamp"
+                }
+              },
+              {
+                "source": {
+                  "name": "opportunity_ended",
+                  "type": "DateTime",
+                  "physicalType": "timestamp"
+                },
+                "sink": {
+                  "name": "opportunity_ended",
+                  "physicalType": "timestamp"
+                }
+              },
+              {
+                "source": {
+                  "name": "deal_hostdb",
+                  "type": "String",
+                  "physicalType": "varchar"
+                },
+                "sink": {
+                  "name": "deal_hostdb",
+                  "physicalType": "string"
+                }
+              },
+              {
+                "source": {
+                  "name": "dms_deal__deal_number__string",
+                  "type": "String",
+                  "physicalType": "varchar"
+                },
+                "sink": {
+                  "name": "dms_deal__deal_number__string",
+                  "physicalType": "string"
+                }
+              },
+              {
+                "source": {
+                  "name": "dms_deal__stock_number",
+                  "type": "String",
+                  "physicalType": "varchar"
+                },
+                "sink": {
+                  "name": "dms_deal__stock_number",
+                  "physicalType": "string"
+                }
+              },
+              {
+                "source": {
+                  "name": "dms_deal__vin",
+                  "type": "String",
+                  "physicalType": "varchar"
+                },
+                "sink": {
+                  "name": "dms_deal__vin",
+                  "physicalType": "string"
+                }
+              },
+              {
+                "source": {
+                  "name": "dms_deal__year__string",
+                  "type": "String",
+                  "physicalType": "varchar"
+                },
+                "sink": {
+                  "name": "dms_deal__year__string",
+                  "physicalType": "string"
+                }
+              },
+              {
+                "source": {
+                  "name": "dms_deal__make_name",
+                  "type": "String",
+                  "physicalType": "varchar"
+                },
+                "sink": {
+                  "name": "dms_deal__make_name",
+                  "physicalType": "string"
+                }
+              },
+              {
+                "source": {
+                  "name": "dms_deal__model_name",
+                  "type": "String",
+                  "physicalType": "varchar"
+                },
+                "sink": {
+                  "name": "dms_deal__model_name",
+                  "physicalType": "string"
+                }
+              },
+              {
+                "source": {
+                  "name": "dms_deal__total_gross__double",
+                  "type": "Double",
+                  "physicalType": "float8"
+                },
+                "sink": {
+                  "name": "dms_deal__total_gross__double",
+                  "physicalType": "double"
+                }
+              },
+              {
+                "source": {
+                  "name": "message_id",
+                  "type": "String",
+                  "physicalType": "varchar"
+                },
+                "sink": {
+                  "name": "message_id",
+                  "physicalType": "string"
+                }
+              },
+              {
+                "source": {
+                  "name": "message_type_id",
+                  "type": "Int64",
+                  "physicalType": "int8"
+                },
+                "sink": {
+                  "name": "message_type_id",
+                  "physicalType": "long"
+                }
+              },
+              {
+                "source": {
+                  "name": "workflow_id",
+                  "type": "Int64",
+                  "physicalType": "int8"
+                },
+                "sink": {
+                  "name": "workflow_id",
+                  "physicalType": "long"
+                }
+              }
+            ],
+            "typeConversion": true,
+            "typeConversionSettings": {
+              "allowDataTruncation": true,
+              "treatBooleanAsNumber": false
+            }
+          },
+          "enableStaging": false
+        },
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "Copy marketingeffectiveness_vw_tbl",
+        "dependsOn": [
+          {
+            "activity": "Copy data from iterable_email table",
+            "dependencyConditions": [
+              "Completed"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "TridentNotebook",
+        "typeProperties": {
+          "notebookId": "a93eceee-64c3-4a64-818e-01ec2eaadc75",
+          "workspaceId": "00000000-0000-0000-0000-000000000000"
+        },
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "Transform_Redshift_Bronze_Silver",
+        "dependsOn": [
+          {
+            "activity": "Copy marketingeffectiveness_vw_tbl",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "TridentNotebook",
+        "typeProperties": {
+          "notebookId": "07c19660-d5c4-483d-94f7-8301d47f1a28",
+          "workspaceId": "00000000-0000-0000-0000-000000000000"
+        },
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "Transform_Redshift_Silver_Gold",
+        "dependsOn": [
+          {
+            "activity": "Transform_Redshift_Bronze_Silver",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
+      }
+    ],
+    "parameters": {
+      "tables": {
+        "type": "array",
+        "defaultValue": [
+          {
+            "source_table": "service_sale_closed",
+            "destination_table": "service_sale_closed",
+            "schema": "marketvehiclesales"
+          },
+          {
+            "source_table": "unique_vin",
+            "destination_table": "market_decoded_vin",
+            "schema": "goauto_bi"
+          },
+          {
+            "source_table": "items_ordered",
+            "destination_table": "items_ordered",
+            "schema": "goauto_bi"
+          },
+          {
+            "source_table": "order_items",
+            "destination_table": "order_items",
+            "schema": "gokitchen"
+          },
+          {
+            "source_table": "gocard",
+            "destination_table": "gocard",
+            "schema": "gocardaws"
+          },
+          {
+            "source_table": "cash_transaction",
+            "destination_table": "gocard_transaction",
+            "schema": "gocardaws"
+          },
+          {
+            "source_table": "servicero",
+            "destination_table": "market_servicero",
+            "schema": "marketrotracker2"
+          },
+          {
+            "source_table": "inventory_photos_vw",
+            "destination_table": "inventory_photos",
+            "schema": "goauto_bi"
+          },
+          {
+            "source_table": "clean_opportunitiesv2",
+            "destination_table": "clean_opportunities",
+            "schema": "goauto_bi"
+          },
+          {
+            "source_table": "unique_vehicle_id",
+            "destination_table": "unique_vehicle_id",
+            "schema": "goauto_bi"
+          },
+          {
+            "source_table": "serviceappointment",
+            "destination_table": "service_appointment",
+            "schema": "cdkdart"
+          },
+          {
+            "source_table": "photo",
+            "destination_table": "marketinventory_photo",
+            "schema": "marketinventory"
+          },
+          {
+            "source_table": "ro_video_vw",
+            "destination_table": "ro_video_vw",
+            "schema": "goauto_bi"
+          },
+          {
+            "source_table": "vehicle sales with crm info",
+            "destination_table": "vehicle_sales_with_crm_info",
+            "schema": "goauto_bi"
+          },
+          {
+            "source_table": "service_with_crm_cust_info",
+            "destination_table": "service_with_crm_cust_info",
+            "schema": "goauto_bi"
+          },
+          {
+            "source_table": "package",
+            "destination_table": "goldcard_package",
+            "schema": "goldcard"
+          }
+        ]
+      }
+    }
+  }
+}

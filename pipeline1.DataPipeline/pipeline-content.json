@@ -1,0 +1,1184 @@
+{
+  "properties": {
+    "activities": [
+      {
+        "type": "Lookup",
+        "typeProperties": {
+          "source": {
+            "type": "SqlServerSource",
+            "sqlReaderQuery": {
+              "value": "select sourcetable as sourcetable  ,destinationtable  as destinationtable from lookup_table_fabric where sourcetable = 'T_ServiceSalesDetailsClosed'",
+              "type": "Expression"
+            },
+            "partitionOption": "None",
+            "queryTimeout": "02:00:00"
+          },
+          "datasetSettings": {
+            "type": "SqlServerTable",
+            "typeProperties": {
+              "database": "CDK_DMS"
+            },
+            "schema": [],
+            "externalReferences": {
+              "connection": "847ef095-90b4-40d2-a9f4-daf507cbef05"
+            },
+            "annotations": []
+          },
+          "firstRowOnly": false
+        },
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "Lookup1",
+        "dependsOn": []
+      },
+      {
+        "type": "ForEach",
+        "typeProperties": {
+          "items": {
+            "value": "@activity('Lookup1').output.value",
+            "type": "Expression"
+          },
+          "activities": [
+            {
+              "type": "Copy",
+              "typeProperties": {
+                "source": {
+                  "type": "SqlServerSource",
+                  "partitionOption": "None",
+                  "queryTimeout": "02:00:00",
+                  "additionalColumns": [
+                    {
+                      "name": "cora_acct_code",
+                      "value": "$$COLUMN:hostdb"
+                    },
+                    {
+                      "name": "server_ip_addr",
+                      "value": "$$COLUMN:hostname"
+                    },
+                    {
+                      "name": "recordinserttimestamp",
+                      "value": "$$COLUMN:rowstartdate"
+                    }
+                  ],
+                  "datasetSettings": {
+                    "type": "SqlServerTable",
+                    "typeProperties": {
+                      "schema": "dbo",
+                      "table": {
+                        "value": "@item().sourcetable",
+                        "type": "Expression"
+                      },
+                      "database": "CDK_DMS"
+                    },
+                    "schema": [],
+                    "externalReferences": {
+                      "connection": "847ef095-90b4-40d2-a9f4-daf507cbef05"
+                    },
+                    "annotations": []
+                  }
+                },
+                "sink": {
+                  "type": "LakehouseTableSink",
+                  "tableActionOption": "OverwriteSchema",
+                  "partitionOption": "None",
+                  "datasetSettings": {
+                    "type": "LakehouseTable",
+                    "typeProperties": {
+                      "table": {
+                        "value": "@item().destinationtable",
+                        "type": "Expression"
+                      }
+                    },
+                    "schema": [],
+                    "linkedService": {
+                      "name": "Bronze_v2",
+                      "properties": {
+                        "type": "Lakehouse",
+                        "typeProperties": {
+                          "artifactId": "db405f5a-a7ed-4a7f-a10d-e9ae273c0e4e",
+                          "workspaceId": "00000000-0000-0000-0000-000000000000",
+                          "rootFolder": "Tables"
+                        },
+                        "annotations": []
+                      }
+                    },
+                    "annotations": []
+                  }
+                },
+                "translator": {
+                  "type": "TabularTranslator",
+                  "mappings": [
+                    {
+                      "source": {
+                        "name": "hostdb",
+                        "type": "String",
+                        "physicalType": "varchar",
+                        "length": "20"
+                      },
+                      "sink": {
+                        "name": "hostdb",
+                        "physicalType": "string"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "hostitemid",
+                        "type": "String",
+                        "physicalType": "varchar",
+                        "length": "40"
+                      },
+                      "sink": {
+                        "name": "hostitemid",
+                        "physicalType": "string"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "hostname",
+                        "type": "String",
+                        "physicalType": "varchar",
+                        "length": "30"
+                      },
+                      "sink": {
+                        "name": "hostname",
+                        "physicalType": "string"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "actualhours",
+                        "type": "String",
+                        "physicalType": "varchar",
+                        "length": "20"
+                      },
+                      "sink": {
+                        "name": "actualhours",
+                        "physicalType": "string"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "addonflag",
+                        "type": "String",
+                        "physicalType": "varchar",
+                        "length": "1"
+                      },
+                      "sink": {
+                        "name": "addonflag",
+                        "physicalType": "string"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "authorizationcode",
+                        "type": "String",
+                        "physicalType": "varchar",
+                        "length": "21"
+                      },
+                      "sink": {
+                        "name": "authorizationcode",
+                        "physicalType": "string"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "bookeddate",
+                        "type": "DateTime",
+                        "physicalType": "datetime"
+                      },
+                      "sink": {
+                        "name": "bookeddate",
+                        "physicalType": "timestamp"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "bookedtime",
+                        "type": "String",
+                        "physicalType": "varchar",
+                        "length": "8"
+                      },
+                      "sink": {
+                        "name": "bookedtime",
+                        "physicalType": "string"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "bookerno",
+                        "type": "String",
+                        "physicalType": "varchar",
+                        "length": "17"
+                      },
+                      "sink": {
+                        "name": "bookerno",
+                        "physicalType": "string"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "cc_prompton_cp",
+                        "type": "String",
+                        "physicalType": "varchar",
+                        "length": "1"
+                      },
+                      "sink": {
+                        "name": "cc_prompton_cp",
+                        "physicalType": "string"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "cc_prompton_ip",
+                        "type": "String",
+                        "physicalType": "varchar",
+                        "length": "1"
+                      },
+                      "sink": {
+                        "name": "cc_prompton_ip",
+                        "physicalType": "string"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "cc_prompton_wp",
+                        "type": "String",
+                        "physicalType": "varchar",
+                        "length": "1"
+                      },
+                      "sink": {
+                        "name": "cc_prompton_wp",
+                        "physicalType": "string"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "campaigncode",
+                        "type": "String",
+                        "physicalType": "varchar",
+                        "length": "20"
+                      },
+                      "sink": {
+                        "name": "campaigncode",
+                        "physicalType": "string"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "causes",
+                        "type": "String",
+                        "physicalType": "varchar",
+                        "length": "55"
+                      },
+                      "sink": {
+                        "name": "causes",
+                        "physicalType": "string"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "claimtype",
+                        "type": "String",
+                        "physicalType": "varchar",
+                        "length": "21"
+                      },
+                      "sink": {
+                        "name": "claimtype",
+                        "physicalType": "string"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "comeback",
+                        "type": "String",
+                        "physicalType": "varchar",
+                        "length": "1"
+                      },
+                      "sink": {
+                        "name": "comeback",
+                        "physicalType": "string"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "comebackro",
+                        "type": "String",
+                        "physicalType": "varchar",
+                        "length": "20"
+                      },
+                      "sink": {
+                        "name": "comebackro",
+                        "physicalType": "string"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "comebacksa",
+                        "type": "String",
+                        "physicalType": "varchar",
+                        "length": "17"
+                      },
+                      "sink": {
+                        "name": "comebacksa",
+                        "physicalType": "string"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "comebacktech",
+                        "type": "String",
+                        "physicalType": "varchar",
+                        "length": "17"
+                      },
+                      "sink": {
+                        "name": "comebacktech",
+                        "physicalType": "string"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "complaintcode",
+                        "type": "String",
+                        "physicalType": "varchar",
+                        "length": "20"
+                      },
+                      "sink": {
+                        "name": "complaintcode",
+                        "physicalType": "string"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "concerncode",
+                        "type": "String",
+                        "physicalType": "varchar",
+                        "length": "20"
+                      },
+                      "sink": {
+                        "name": "concerncode",
+                        "physicalType": "string"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "concerncodelabel",
+                        "type": "String",
+                        "physicalType": "varchar",
+                        "length": "14"
+                      },
+                      "sink": {
+                        "name": "concerncodelabel",
+                        "physicalType": "string"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "concerncodelabelabbr",
+                        "type": "String",
+                        "physicalType": "varchar",
+                        "length": "2"
+                      },
+                      "sink": {
+                        "name": "concerncodelabelabbr",
+                        "physicalType": "string"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "concerndescription",
+                        "type": "String",
+                        "physicalType": "varchar",
+                        "length": "40"
+                      },
+                      "sink": {
+                        "name": "concerndescription",
+                        "physicalType": "string"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "conditioncode",
+                        "type": "String",
+                        "physicalType": "varchar",
+                        "length": "21"
+                      },
+                      "sink": {
+                        "name": "conditioncode",
+                        "physicalType": "string"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "dispatchactualduration",
+                        "type": "Double",
+                        "physicalType": "float"
+                      },
+                      "sink": {
+                        "name": "dispatchactualduration",
+                        "physicalType": "double"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "dispatchcode",
+                        "type": "String",
+                        "physicalType": "varchar",
+                        "length": "6"
+                      },
+                      "sink": {
+                        "name": "dispatchcode",
+                        "physicalType": "string"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "dispatchestimatedduration",
+                        "type": "Double",
+                        "physicalType": "float"
+                      },
+                      "sink": {
+                        "name": "dispatchestimatedduration",
+                        "physicalType": "double"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "dispatchlinecode",
+                        "type": "String",
+                        "physicalType": "varchar",
+                        "length": "2"
+                      },
+                      "sink": {
+                        "name": "dispatchlinecode",
+                        "physicalType": "string"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "dispatchlinestatus",
+                        "type": "String",
+                        "physicalType": "varchar",
+                        "length": "5"
+                      },
+                      "sink": {
+                        "name": "dispatchlinestatus",
+                        "physicalType": "string"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "failedpart",
+                        "type": "String",
+                        "physicalType": "varchar",
+                        "length": "30"
+                      },
+                      "sink": {
+                        "name": "failedpart",
+                        "physicalType": "string"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "failedpartcount",
+                        "type": "Double",
+                        "physicalType": "float"
+                      },
+                      "sink": {
+                        "name": "failedpartcount",
+                        "physicalType": "integer"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "failurecode",
+                        "type": "String",
+                        "physicalType": "varchar",
+                        "length": "21"
+                      },
+                      "sink": {
+                        "name": "failurecode",
+                        "physicalType": "string"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "groupname",
+                        "type": "String",
+                        "physicalType": "varchar",
+                        "length": "30"
+                      },
+                      "sink": {
+                        "name": "groupname",
+                        "physicalType": "string"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "laborcost",
+                        "type": "Decimal",
+                        "physicalType": "money",
+                        "scale": 4,
+                        "precision": 19
+                      },
+                      "sink": {
+                        "name": "laborcost",
+                        "physicalType": "decimal",
+                        "scale": 4,
+                        "precision": 19
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "labordebitaccount",
+                        "type": "String",
+                        "physicalType": "varchar",
+                        "length": "10"
+                      },
+                      "sink": {
+                        "name": "labordebitaccount",
+                        "physicalType": "string"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "labordebitcompany",
+                        "type": "String",
+                        "physicalType": "varchar",
+                        "length": "3"
+                      },
+                      "sink": {
+                        "name": "labordebitcompany",
+                        "physicalType": "string"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "labordebitcontrol",
+                        "type": "String",
+                        "physicalType": "varchar",
+                        "length": "17"
+                      },
+                      "sink": {
+                        "name": "labordebitcontrol",
+                        "physicalType": "string"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "laborjournal",
+                        "type": "String",
+                        "physicalType": "varchar",
+                        "length": "3"
+                      },
+                      "sink": {
+                        "name": "laborjournal",
+                        "physicalType": "string"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "laborjournalcompany",
+                        "type": "String",
+                        "physicalType": "varchar",
+                        "length": "3"
+                      },
+                      "sink": {
+                        "name": "laborjournalcompany",
+                        "physicalType": "string"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "laborsale",
+                        "type": "Decimal",
+                        "physicalType": "money",
+                        "scale": 4,
+                        "precision": 19
+                      },
+                      "sink": {
+                        "name": "laborsale",
+                        "physicalType": "decimal",
+                        "scale": 4,
+                        "precision": 19
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "laborsaleaccount",
+                        "type": "String",
+                        "physicalType": "varchar",
+                        "length": "10"
+                      },
+                      "sink": {
+                        "name": "laborsaleaccount",
+                        "physicalType": "string"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "laborsalecompany",
+                        "type": "String",
+                        "physicalType": "varchar",
+                        "length": "3"
+                      },
+                      "sink": {
+                        "name": "laborsalecompany",
+                        "physicalType": "string"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "laborsalecontrol",
+                        "type": "String",
+                        "physicalType": "varchar",
+                        "length": "17"
+                      },
+                      "sink": {
+                        "name": "laborsalecontrol",
+                        "physicalType": "string"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "labortype",
+                        "type": "String",
+                        "physicalType": "varchar",
+                        "length": "5"
+                      },
+                      "sink": {
+                        "name": "labortype",
+                        "physicalType": "string"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "linecode",
+                        "type": "String",
+                        "physicalType": "varchar",
+                        "length": "3"
+                      },
+                      "sink": {
+                        "name": "linecode",
+                        "physicalType": "string"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "lopseqno",
+                        "type": "String",
+                        "physicalType": "varchar",
+                        "length": "10"
+                      },
+                      "sink": {
+                        "name": "lopseqno",
+                        "physicalType": "string"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "mcdlaborpercentage",
+                        "type": "Double",
+                        "physicalType": "float"
+                      },
+                      "sink": {
+                        "name": "mcdlaborpercentage",
+                        "physicalType": "double"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "make",
+                        "type": "String",
+                        "physicalType": "varchar",
+                        "length": "15"
+                      },
+                      "sink": {
+                        "name": "make",
+                        "physicalType": "string"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "misccost",
+                        "type": "Decimal",
+                        "physicalType": "money",
+                        "scale": 4,
+                        "precision": 19
+                      },
+                      "sink": {
+                        "name": "misccost",
+                        "physicalType": "decimal",
+                        "scale": 4,
+                        "precision": 19
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "miscsale",
+                        "type": "Decimal",
+                        "physicalType": "money",
+                        "scale": 4,
+                        "precision": 19
+                      },
+                      "sink": {
+                        "name": "miscsale",
+                        "physicalType": "decimal",
+                        "scale": 4,
+                        "precision": 19
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "opcode",
+                        "type": "String",
+                        "physicalType": "varchar",
+                        "length": "20"
+                      },
+                      "sink": {
+                        "name": "opcode",
+                        "physicalType": "string"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "opcodedescription",
+                        "type": "String",
+                        "physicalType": "varchar",
+                        "length": "250"
+                      },
+                      "sink": {
+                        "name": "opcodedescription",
+                        "physicalType": "string"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "originappl",
+                        "type": "String",
+                        "physicalType": "varchar",
+                        "length": "30"
+                      },
+                      "sink": {
+                        "name": "originappl",
+                        "physicalType": "string"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "origincode",
+                        "type": "String",
+                        "physicalType": "varchar",
+                        "length": "5"
+                      },
+                      "sink": {
+                        "name": "origincode",
+                        "physicalType": "string"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "otherhours",
+                        "type": "Double",
+                        "physicalType": "float"
+                      },
+                      "sink": {
+                        "name": "otherhours",
+                        "physicalType": "double"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "partscost",
+                        "type": "Decimal",
+                        "physicalType": "money",
+                        "scale": 4,
+                        "precision": 19
+                      },
+                      "sink": {
+                        "name": "partscost",
+                        "physicalType": "decimal",
+                        "scale": 4,
+                        "precision": 19
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "partsflag",
+                        "type": "String",
+                        "physicalType": "varchar",
+                        "length": "1"
+                      },
+                      "sink": {
+                        "name": "partsflag",
+                        "physicalType": "string"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "partssale",
+                        "type": "Decimal",
+                        "physicalType": "money",
+                        "scale": 4,
+                        "precision": 19
+                      },
+                      "sink": {
+                        "name": "partssale",
+                        "physicalType": "decimal",
+                        "scale": 4,
+                        "precision": 19
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "pickitemid",
+                        "type": "String",
+                        "physicalType": "varchar",
+                        "length": "40"
+                      },
+                      "sink": {
+                        "name": "pickitemid",
+                        "physicalType": "string"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "ronumber",
+                        "type": "String",
+                        "physicalType": "varchar",
+                        "length": "12"
+                      },
+                      "sink": {
+                        "name": "ronumber",
+                        "physicalType": "string"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "rowlastupdated",
+                        "type": "DateTime",
+                        "physicalType": "datetime"
+                      },
+                      "sink": {
+                        "name": "rowlastupdated",
+                        "physicalType": "timestamp"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "servicerequest",
+                        "type": "String",
+                        "physicalType": "varchar",
+                        "length": "1256"
+                      },
+                      "sink": {
+                        "name": "servicerequest",
+                        "physicalType": "string"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "servicewriter",
+                        "type": "String",
+                        "physicalType": "varchar",
+                        "length": "17"
+                      },
+                      "sink": {
+                        "name": "servicewriter",
+                        "physicalType": "string"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "soldhours",
+                        "type": "Double",
+                        "physicalType": "float"
+                      },
+                      "sink": {
+                        "name": "soldhours",
+                        "physicalType": "double"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "storyseqnumber",
+                        "type": "String",
+                        "physicalType": "varchar",
+                        "length": "3"
+                      },
+                      "sink": {
+                        "name": "storyseqnumber",
+                        "physicalType": "string"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "techno",
+                        "type": "String",
+                        "physicalType": "varchar",
+                        "length": "17"
+                      },
+                      "sink": {
+                        "name": "techno",
+                        "physicalType": "string"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "techno2",
+                        "type": "String",
+                        "physicalType": "varchar",
+                        "length": "17"
+                      },
+                      "sink": {
+                        "name": "techno2",
+                        "physicalType": "string"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "techno3",
+                        "type": "String",
+                        "physicalType": "varchar",
+                        "length": "17"
+                      },
+                      "sink": {
+                        "name": "techno3",
+                        "physicalType": "string"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "techno4",
+                        "type": "String",
+                        "physicalType": "varchar",
+                        "length": "17"
+                      },
+                      "sink": {
+                        "name": "techno4",
+                        "physicalType": "string"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "techno5",
+                        "type": "String",
+                        "physicalType": "varchar",
+                        "length": "17"
+                      },
+                      "sink": {
+                        "name": "techno5",
+                        "physicalType": "string"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "technos",
+                        "type": "String",
+                        "physicalType": "varchar",
+                        "length": "17"
+                      },
+                      "sink": {
+                        "name": "technos",
+                        "physicalType": "string"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "timecardhours",
+                        "type": "Double",
+                        "physicalType": "float"
+                      },
+                      "sink": {
+                        "name": "timecardhours",
+                        "physicalType": "double"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "vehid",
+                        "type": "String",
+                        "physicalType": "varchar",
+                        "length": "17"
+                      },
+                      "sink": {
+                        "name": "vehid",
+                        "physicalType": "string"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "linoriginappl",
+                        "type": "String",
+                        "physicalType": "varchar",
+                        "length": "30"
+                      },
+                      "sink": {
+                        "name": "linoriginappl",
+                        "physicalType": "string"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "linorigincode",
+                        "type": "String",
+                        "physicalType": "varchar",
+                        "length": "5"
+                      },
+                      "sink": {
+                        "name": "linorigincode",
+                        "physicalType": "string"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "loporiginappl",
+                        "type": "String",
+                        "physicalType": "varchar",
+                        "length": "30"
+                      },
+                      "sink": {
+                        "name": "loporiginappl",
+                        "physicalType": "string"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "loporigincode",
+                        "type": "String",
+                        "physicalType": "varchar",
+                        "length": "5"
+                      },
+                      "sink": {
+                        "name": "loporigincode",
+                        "physicalType": "string"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "baseid",
+                        "type": "String",
+                        "physicalType": "varchar",
+                        "length": "40"
+                      },
+                      "sink": {
+                        "name": "baseid",
+                        "physicalType": "string"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "grouphdrfield",
+                        "type": "String",
+                        "physicalType": "varchar",
+                        "length": "40"
+                      },
+                      "sink": {
+                        "name": "grouphdrfield",
+                        "physicalType": "string"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "lopdiscseqnos",
+                        "type": "String",
+                        "physicalType": "varchar",
+                        "length": "20"
+                      },
+                      "sink": {
+                        "name": "lopdiscseqnos",
+                        "physicalType": "string"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "rowstartdate",
+                        "type": "DateTime",
+                        "physicalType": "datetime2",
+                        "precision": 0
+                      },
+                      "sink": {
+                        "name": "rowstartdate",
+                        "physicalType": "timestamp"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "rowupdatedate",
+                        "type": "DateTime",
+                        "physicalType": "datetime2",
+                        "precision": 0
+                      },
+                      "sink": {
+                        "name": "rowupdatedate",
+                        "physicalType": "timestamp"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "cora_acct_code",
+                        "type": "String"
+                      },
+                      "sink": {
+                        "name": "cora_acct_code",
+                        "physicalType": "string"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "server_ip_addr",
+                        "type": "String"
+                      },
+                      "sink": {
+                        "name": "server_ip_addr",
+                        "physicalType": "string"
+                      }
+                    },
+                    {
+                      "source": {
+                        "name": "recordinserttimestamp",
+                        "type": "DateTime"
+                      },
+                      "sink": {
+                        "name": "recordinserttimestamp",
+                        "physicalType": "timestamp"
+                      }
+                    }
+                  ],
+                  "typeConversion": true,
+                  "typeConversionSettings": {
+                    "allowDataTruncation": true,
+                    "treatBooleanAsNumber": false
+                  }
+                },
+                "enableStaging": false
+              },
+              "policy": {
+                "timeout": "0.12:00:00",
+                "retry": 0,
+                "retryIntervalInSeconds": 30,
+                "secureInput": false,
+                "secureOutput": false
+              },
+              "name": "Copy data1",
+              "dependsOn": []
+            }
+          ]
+        },
+        "name": "ForEach1",
+        "dependsOn": [
+          {
+            "activity": "Lookup1",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

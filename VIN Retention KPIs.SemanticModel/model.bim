@@ -1,0 +1,138 @@
+{
+  "compatibilityLevel": 1604,
+  "model": {
+    "annotations": [
+      {
+        "name": "__PBI_TimeIntelligenceEnabled",
+        "value": "0"
+      },
+      {
+        "name": "PBIDesktopVersion",
+        "value": "2.134.7446.3 (Main)"
+      },
+      {
+        "name": "PBI_QueryOrder",
+        "value": "[\"DatabaseQuery\"]"
+      },
+      {
+        "name": "PBI_ProTooling",
+        "value": "[\"WebModelingEdit\",\"DaxQueryView_Desktop\"]"
+      }
+    ],
+    "collation": "Latin1_General_100_BIN2_UTF8",
+    "culture": "en-US",
+    "cultures": [
+      {
+        "name": "en-US",
+        "linguisticMetadata": {
+          "content": {
+            "Language": "en-US",
+            "Version": "1.0.0"
+          },
+          "contentType": "json"
+        }
+      }
+    ],
+    "dataAccessOptions": {
+      "legacyRedirects": true,
+      "returnErrorValuesAsNull": true
+    },
+    "defaultPowerBIDataSourceVersion": "powerBI_V3",
+    "expressions": [
+      {
+        "name": "DatabaseQuery",
+        "annotations": [
+          {
+            "name": "PBI_IncludeFutureArtifacts",
+            "value": "False"
+          }
+        ],
+        "expression": [
+          "let",
+          "    database = Sql.Database(\"D54YTVDZNZ7EFJIZRWAYJUWS3M-D2XG5TYMKTUELMN55VBF2OK47U.datawarehouse.fabric.microsoft.com\", \"eced806f-e6e9-4011-8a19-c4db234272bf\")",
+          "in",
+          "    database"
+        ],
+        "kind": "m",
+        "lineageTag": "c073201a-6dde-4f96-af77-e16a2f33f455"
+      }
+    ],
+    "sourceQueryCulture": "en-US",
+    "tables": [
+      {
+        "name": "appointment_outlook",
+        "annotations": [
+          {
+            "name": "PBI_ResultType",
+            "value": "Table"
+          }
+        ],
+        "columns": [
+          {
+            "name": "appointment_week",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "dataType": "dateTime",
+            "formatString": "General Date",
+            "lineageTag": "94e110e8-2868-4214-8806-8ebc5c6d61af",
+            "sourceColumn": "appointment_week",
+            "sourceLineageTag": "appointment_week",
+            "sourceProviderType": "date",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "appointments",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "dataType": "int64",
+            "formatString": "0",
+            "lineageTag": "c8fdf05a-4dfb-46f9-8234-cba681efa88f",
+            "sourceColumn": "appointments",
+            "sourceLineageTag": "appointments",
+            "sourceProviderType": "bigint",
+            "summarizeBy": "sum"
+          }
+        ],
+        "lineageTag": "4c6eb441-312c-4ed6-b2f0-c5e34a55fedb",
+        "measures": [
+          {
+            "name": "CurrentAppointments",
+            "changedProperties": [
+              {
+                "property": "Name"
+              }
+            ],
+            "expression": [
+              "",
+              "VAR MaxDate = MAX(appointment_outlook[appointment_week])",
+              "RETURN",
+              "MaxDate & \" \" & CALCULATE(SUM(appointment_outlook[appointments]), appointment_outlook[appointment_week] = MaxDate)"
+            ],
+            "lineageTag": "eee0c893-eb65-40ec-b53c-d4ed08346682"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "appointment_outlook",
+            "mode": "directLake",
+            "source": {
+              "entityName": "appointment_outlook",
+              "expressionSource": "DatabaseQuery",
+              "schemaName": "ds_lab",
+              "type": "entity"
+            }
+          }
+        ],
+        "sourceLineageTag": "[ds_lab].[appointment_outlook]"
+      }
+    ]
+  }
+}

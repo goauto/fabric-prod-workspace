@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "SemanticModel",
+    "displayName": "VIN Retention KPIs"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "bf5db692-7ea7-49ab-acf5-7314c51cd223"
+  }
+}
