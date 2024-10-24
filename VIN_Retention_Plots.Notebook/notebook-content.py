@@ -183,7 +183,6 @@ plot_vehicle_distribution(gold_df)
 
 # CELL ********************
 
-import matplotlib.ticker as mtick
 
 
 def plot_sales_and_service_retention(gold_df, make_type):
@@ -197,12 +196,20 @@ def plot_sales_and_service_retention(gold_df, make_type):
     
     sales_and_service_by_month = df_filtered.groupby('sale_month').agg({
         'vin': 'count',
-        'returned_for_service': 'sum'
+        'returned_for_service':'sum',
+        'same_store_retention': 'sum',
     }).reset_index()
     
-    sales_and_service_by_month.columns = ['sale_month', 'total_sales', 'returned_for_service']
-    sales_and_service_by_month['retention_rate'] = (sales_and_service_by_month['returned_for_service'] / 
+    sales_and_service_by_month.columns = ['sale_month', 'total_sales', 'overall_retention','same_store_retention']
+
+
+    sales_and_service_by_month['retention_rate_overall'] = (sales_and_service_by_month['overall_retention'] / 
                                                     sales_and_service_by_month['total_sales'] * 100)
+    
+    sales_and_service_by_month['retention_rate_same_store'] = (sales_and_service_by_month['same_store_retention'] / 
+                                                    sales_and_service_by_month['total_sales'] * 100)
+
+    
 
     # Plotting
     fig, ax1 = plt.subplots(figsize=(15, 7))
@@ -218,16 +225,24 @@ def plot_sales_and_service_retention(gold_df, make_type):
     ax2.set_ylabel('Number of Vehicles Sold', color='black', fontsize=12)
     ax2.tick_params(axis='y', labelcolor='black')
 
-    # Retention rate line on the left axis
-    line = ax1.plot(sales_and_service_by_month['sale_month'].astype(str), 
-                    sales_and_service_by_month['retention_rate'], 
-                    color='blue', marker='o', label='Retention Rate', linewidth=2, markersize=8, zorder=10)
+
+    # Overall Retention rate line on the left axis
+    line_overall = ax1.plot(sales_and_service_by_month['sale_month'].astype(str), 
+                             sales_and_service_by_month['retention_rate_overall'], 
+                             color='blue', marker='o', label='Retention Rate Overall', linewidth=2, markersize=8, zorder=10)
+
+    # Same Store Retention rate line on the left axis
+    line_same_store = ax1.plot(sales_and_service_by_month['sale_month'].astype(str), 
+                                sales_and_service_by_month['retention_rate_same_store'], 
+                                color='blue', alpha=0.4,marker='.', label='Retention Rate Same-Store', linewidth=2, markersize=8, zorder=10)
     
     ax1.set_ylabel('Retention Rate (%)', color='blue', fontsize=12)
     ax1.tick_params(axis='y', labelcolor='blue')
     ax1.yaxis.set_major_formatter(mtick.PercentFormatter())
     ax1.set_ylim(0, 100)
 
+    
+    
     # X-axis settings
     plt.xticks(range(0, len(sales_and_service_by_month), 3), 
                sales_and_service_by_month['sale_month'].astype(str)[::3], 
@@ -470,11 +485,16 @@ def plot_proximity_retention_rate(gold_df, make_type):
     # Group by distance category and calculate returned vehicles and sales volume
     retention_by_distance = filtered_df.groupby('distance_category').agg({
         'vin': 'count',
-        'returned_for_service': 'sum'
+        'returned_for_service': 'sum',
+        'same_store_retention':'sum'
     }).reset_index()
     
     # Calculate percentage of returned vehicles
-    retention_by_distance['returned_percentage'] = (retention_by_distance['returned_for_service'] / retention_by_distance['vin']) * 100
+    retention_by_distance['overall_returned_percentage'] = (retention_by_distance['returned_for_service'] / retention_by_distance['vin']) * 100
+
+    # Same store retention percentage
+    retention_by_distance['same_store_returned_percentage'] = (retention_by_distance['same_store_retention'] / retention_by_distance['vin']) * 100
+
 
     fig, ax1 = plt.subplots(figsize=(20, 6))
     
@@ -483,12 +503,22 @@ def plot_proximity_retention_rate(gold_df, make_type):
     ax1.tick_params(axis='y', labelcolor='blue')
     
     # Plotting retention rate as a line with points on the left y-axis
-    line = ax1.plot(retention_by_distance['distance_category'], retention_by_distance['returned_percentage'], 
-                    color='blue', marker='o', markersize=10, linewidth=4, label='Retention Rate (%)')
+    line_overall = ax1.plot(retention_by_distance['distance_category'], retention_by_distance['overall_returned_percentage'], 
+                    color='blue', marker='o', markersize=10, linewidth=4, label='Overall Retention Rate (%)')
+
+
+    line_same_store = ax1.plot(retention_by_distance['distance_category'], retention_by_distance['same_store_returned_percentage'], 
+                    color='blue', alpha=0.4,marker='.', markersize=10, linewidth=4, label='Same Store Retention Rate (%)')
+
+
 
     # Adding retention rate percentages next to each dot
-    for x, y in zip(retention_by_distance['distance_category'], retention_by_distance['returned_percentage']):
+    for x, y in zip(retention_by_distance['distance_category'], retention_by_distance['overall_returned_percentage']):
         ax1.annotate(f'{y:.1f}%', (x, y), xytext=(5, 5), textcoords='offset points', fontsize=10, color='blue')
+
+    # Adding same store retention rate percentages next to each dot
+    for x, y in zip(retention_by_distance['distance_category'], retention_by_distance['same_store_returned_percentage']):
+        ax1.annotate(f'{y:.1f}%', (x, y), xytext=(5, -12), textcoords='offset points', fontsize=10, color='blue',alpha=0.6)
 
     ax1.yaxis.set_major_formatter(mtick.PercentFormatter())
     ax1.set_ylim(0, 100)
@@ -589,51 +619,124 @@ plot_proximity_retention_rate(gold_df,'Outlet')
 
 # CELL ********************
 
+
 def plot_same_store_retention(gold_df):
 
     # Filter for customers who have returned for service
-    returned_customers = gold_df[gold_df['returned_for_service'] == 1]
+    returned_customers = gold_df.query("returned_for_service== 1")
     
-    # Calculate the counts
-    same_store = returned_customers['same_store_retention'].sum()
-    not_same_store = len(returned_customers) - same_store
+    # Create a new column for retention type
+    returned_customers['retention_type'] = returned_customers['same_store_retention'].map({1: 'Same Store', 0: 'Different Store'})
     
-    # Create a dataframe for plotting
-    plot_data = pd.DataFrame({
-        'Retention Type': ['Same Store', 'Different Store'],
-        'Count': [same_store, not_same_store]
-    })
+    # Define the order for make_type so its easier to view
+    make_type_order = ['New', 'ON_make', 'OFF_make', 'Outlet']
+    
     
     # Calculate percentages
-    total = plot_data['Count'].sum()
-    plot_data['Percentage'] = plot_data['Count'] / total * 100
-
-    plt.figure(figsize=(10, 6))
-    bars = plt.bar(plot_data['Retention Type'], plot_data['Percentage'], color=['#1f77b4', '#ff7f0e'])
+    retention_percentages = returned_customers.groupby(['make_type', 'retention_type']).size().unstack()
+    retention_percentages = retention_percentages.div(retention_percentages.sum(axis=1), axis=0) * 100
     
-    # Add percentage labels on top of each bar
-    for bar in bars:
-        height = bar.get_height()
-        plt.text(bar.get_x() + bar.get_width()/2., height,
-                 f'{height:.1f}%',
-                 ha='center', va='bottom')
+    # Reset index for plotting
+    retention_percentages = retention_percentages.reset_index()
+    
+    # Melt the dataframe for easier plotting
+    plot_data = pd.melt(retention_percentages, 
+                        id_vars=['make_type'], 
+                        var_name='retention_type', 
+                        value_name='Percentage')
+    
+    # Create the plot
+    plt.figure(figsize=(12, 6))
+    
+    # Use a color palette with two colors: dark orange and black
+    color_palette = {'Same Store': 'darkorange', 'Different Store': 'grey'}
+    
+    g = sns.barplot(x='make_type', y='Percentage', hue='retention_type', data=plot_data, 
+                    order=make_type_order, palette=color_palette)
     
     # Customize the plot
     plt.ylabel('Percentage of Customers')
-    plt.title('Same Store vs Different Store Retention')
-    plt.ylim(0, 100)  
+    plt.xlabel('Make Type')
+    plt.title('Same Store vs Different Store Retention by Make Type')
+    plt.ylim(0, 100)
+    
+    # Add percentage labels on top of each bar
+    for container in g.containers:
+        g.bar_label(container, fmt='%.1f%%', label_type='center')
 
-
+    
+    # Customize legend
+    plt.legend(title='Retention Type', loc='upper right')
+    
     plt.tight_layout()
     plt.show()
 
+# METADATA ********************
 
- 
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
 
-
+# CELL ********************
 
 plot_same_store_retention(gold_df)
 
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# MARKDOWN ********************
+
+# ### Jittered Scatter Plot of Returns vs. Proximity
+
+# CELL ********************
+
+jitter_df=gold_df[['haversine_distance','returned_for_service','make_type']].copy()
+jitter_df['returned_for_service'] = jitter_df['returned_for_service'].map({1: 'Yes', 0: 'No'})
+
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# CELL ********************
+
+def plot_jittered_scatter(jitter_df, make_type=None):
+
+    if make_type is not None:
+        filtered_df = jitter_df[jitter_df['make_type'] == make_type]
+    else:
+        filtered_df = jitter_df
+
+    # jittered scatter plot
+    plt.figure(figsize=(15, 6))
+    sns.stripplot(x='haversine_distance', y='returned_for_service', data=filtered_df, jitter=True, hue='make_type')
+
+    plt.title(f'Jittered Scatter Plot of Returns vs. Proximity for {make_type}')
+    plt.xlabel('Haversine Distance (km)')
+    plt.ylabel('Returned for Service')
+    plt.xlim(0, jitter_df['haversine_distance'].max() + 5)
+    
+    plt.legend(title='Make Type', loc='upper left', bbox_to_anchor=(1, 1))
+    plt.show()
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# CELL ********************
+
+plot_jittered_scatter(jitter_df,'New')
 
 # METADATA ********************
 
